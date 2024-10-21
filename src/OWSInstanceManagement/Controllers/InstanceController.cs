@@ -229,5 +229,17 @@ namespace OWSInstanceManagement.Controllers
 
             return await request.Handle();
         }
+        
+        /// <remarks>
+        /// Remove zone instance that matches ZoneInstanceIDs
+        /// </remarks>
+        [HttpPost]
+        [Route("RemoveZoneInstance")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> RemoveZoneInstances([FromBody] RemoveZoneInstanceRequest request)
+        {
+            request.SetData(_instanceManagementRepository, _customerGuid);
+            return await request.Handle();
+        }
     }
 }

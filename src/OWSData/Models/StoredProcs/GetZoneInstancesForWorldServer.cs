@@ -12,7 +12,7 @@ namespace OWSData.Models.StoredProcs
         public int MapID { get; set; }
         public int Port { get; set; }
         public int Status { get; set; }
-        public int PlayerGoupID { get; set; }
+        public int PlayerGroupID { get; set; }
         public int NumberOfReportedPlayers { get; set; }
         public DateTime? LastUpdateFromServer { get; set; }
         public DateTime? LastServerEmptyDate { get; set; }

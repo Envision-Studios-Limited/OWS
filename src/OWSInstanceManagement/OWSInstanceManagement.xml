@@ -12,6 +12,11 @@
             Get information on the server instance that matches the ZoneInstanceId in the POST data
             </remarks>
         </member>
+        <member name="M:OWSInstanceManagement.Controllers.InstanceController.RemoveZoneInstances(OWSInstanceManagement.Requests.Instance.RemoveZoneInstanceRequest)">
+            <remarks>
+            Remove zone instance that matches ZoneInstanceIDs
+            </remarks>
+        </member>
         <member name="T:OWSInstanceManagement.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -106,6 +111,14 @@
             </summary>
             <remarks>
             This Request object contains a field for sending in the ZoneName to get a list of running Zone Instances for.
+            </remarks>
+        </member>
+        <member name="T:OWSInstanceManagement.Requests.Instance.RemoveZoneInstanceRequest">
+            <summary>
+            ShutdownZoneInstanceRequest
+            </summary>
+            <remarks>
+            Remove zone instance that matches ZoneInstanceId
             </remarks>
         </member>
         <member name="T:OWSInstanceManagement.Requests.Instance.UpdateNumberOfPlayersRequest">

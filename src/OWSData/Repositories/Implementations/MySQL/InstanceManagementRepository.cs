@@ -371,5 +371,40 @@ namespace OWSData.Repositories.Implementations.MySQL
                 return output;
             }
         }
+
+        public async Task<SuccessAndErrorMessage> RemoveZoneInstance(Guid customerGUID, int[] zoneInstanceIDs)
+        {
+            try
+            {
+                using (Connection)
+                {
+                    var parameter = new DynamicParameters();
+                    parameter.Add("@CustomerGUID", customerGUID);
+                    parameter.Add("@MapInstances", zoneInstanceIDs);
+
+                    await Connection.ExecuteAsync(GenericQueries.RemoveMapInstances,
+                        parameter,
+                        commandType: CommandType.Text);
+                }
+
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = true,
+                    ErrorMessage = ""
+                };
+                
+                return output;
+            }
+            catch (Exception ex)
+            {
+                SuccessAndErrorMessage output = new SuccessAndErrorMessage()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
+
+                return output;
+            }
+        }
     }
 }

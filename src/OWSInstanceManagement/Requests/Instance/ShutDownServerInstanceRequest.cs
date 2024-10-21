@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace OWSInstanceManagement.Requests.Instance
 {
-    public class ShutDownServerInstanceRequest : IRequestHandler<SpinUpServerInstanceRequest, IActionResult>, IRequest
+    public class ShutDownServerInstanceRequest : IRequestHandler<ShutDownServerInstanceRequest, IActionResult>, IRequest
     {
         public int WorldServerID { get; set; }
         public int ZoneInstanceID { get; set; }

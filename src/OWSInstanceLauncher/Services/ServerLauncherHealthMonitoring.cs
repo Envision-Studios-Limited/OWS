@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-using OWSData.Models;
+﻿using Microsoft.Extensions.Options;
 using OWSData.Models.StoredProcs;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
@@ -8,6 +6,7 @@ using OWSShared.RequestPayloads;
 using OWSShared.Options;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -47,13 +46,16 @@ namespace OWSInstanceLauncher.Services
 
             //Get a list of ZoneInstances from api/Instance/GetZoneInstancesForWorldServer
             List<GetZoneInstancesForWorldServer> zoneInstances = GetZoneInstancesForWorldServer(worldServerID);
-
             foreach (var zoneInstance in zoneInstances)
             {
-                if (zoneInstance.LastServerEmptyDate < DateTime.Now.AddMinutes(0 - zoneInstance.MinutesToShutdownAfterEmpty))
+                bool hasPassed = zoneInstance.NumberOfReportedPlayers < 1 && zoneInstance.LastServerEmptyDate <
+                                 DateTime.Now.AddMinutes(0 - zoneInstance.MinutesToShutdownAfterEmpty);
+                
+                if (hasPassed)
                 {
                     //Shut down Zone Server Instance
-
+                    Log.Warning("Shutting down empty zone instance: {zoneInstance.MapInstanceID}...");
+                    ShutDownZoneInstanceRequest(zoneInstance.WorldServerID, zoneInstance.MapInstanceID);
                 }
             }
         }
@@ -61,6 +63,34 @@ namespace OWSInstanceLauncher.Services
         public void Dispose()
         {
             Log.Information("Shutting Down OWS Server Health Monitoring...");
+        }
+        
+        private bool ShutDownZoneInstanceRequest(int worldServerID, int zoneInstanceID)
+        {
+            var instanceManagementHttpClient = _httpClientFactory.CreateClient("OWSInstanceManagement");
+            
+            ShutdownServerInstanceRequestPayload shutdownServerInstanceRequestPayload =
+                new ShutdownServerInstanceRequestPayload
+                {
+                    WorldServerID = worldServerID,
+                    ZoneInstanceID = zoneInstanceID, 
+                };
+
+            var shutdownServerInstancePayload = new StringContent(JsonSerializer.Serialize(shutdownServerInstanceRequestPayload), Encoding.UTF8, "application/json");
+            
+            var responseMessageTask = instanceManagementHttpClient.PostAsync("api/Instance/ShutDownServerInstance", shutdownServerInstancePayload);
+            var responseMessage = responseMessageTask.Result;
+            
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                Log.Information("Succeeded Shutting Down Server Instance: {responseMessage.ReasonPhrase}");
+                return true;
+            }
+            else
+            {
+                Log.Error("Failed Shutting Down Server Instance");
+                return false;
+            }
         }
 
         private List<GetZoneInstancesForWorldServer> GetZoneInstancesForWorldServer(int worldServerId)
@@ -86,11 +116,19 @@ namespace OWSInstanceLauncher.Services
             {
                 var responseContentAsync = responseMessage.Content.ReadAsStringAsync();
                 string responseContentString = responseContentAsync.Result;
-                output = JsonSerializer.Deserialize<List<GetZoneInstancesForWorldServer>>(responseContentString);
+                
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                output = JsonSerializer.Deserialize<List<GetZoneInstancesForWorldServer>>(responseContentString, options);
+                Log.Information($"Succeeded to get zone instances: {output.Count}");
             }
             else
             {
-                output = new List<GetZoneInstancesForWorldServer>();
+                output = null;
+                Log.Error($"Failed to get zone instances for World Server: {worldServerId} with status code {responseMessage.StatusCode} due to error: {responseMessage.ReasonPhrase}");
             }
 
             return output;
