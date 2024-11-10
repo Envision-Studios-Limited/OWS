@@ -59,18 +59,6 @@ namespace OWSData.Repositories.Implementations.MySQL
                     p.Add("@CharacterName", characterName);
                     p.Add("@ClassName", className);
                     
-                    // Check if a character with the specified name already exists
-                    characters = await Connection.QueryFirstOrDefaultAsync<Characters>(
-                        PostgresQueries.GetCharacterByNameSQL, 
-                        new { @CustomerGUID = customerGUID, @CharacterName = characterName });
-
-                    if (characters != null)
-                    {
-                        outputObject.Success = false;
-                        outputObject.ErrorMessage = "The character name is already taken.";
-                        return outputObject;
-                    }
-
                     outputObject = await Connection.QuerySingleAsync<CreateCharacter>("call AddCharacter(@CustomerGUID,@UserSessionGUID,@CharacterName,@ClassName)",
                         p,
                         commandType: CommandType.Text);

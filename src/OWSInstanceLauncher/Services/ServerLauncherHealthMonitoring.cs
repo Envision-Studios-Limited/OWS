@@ -54,7 +54,7 @@ namespace OWSInstanceLauncher.Services
                 if (hasPassed)
                 {
                     //Shut down Zone Server Instance
-                    Log.Warning("Shutting down empty zone instance: {zoneInstance.MapInstanceID}...");
+                    Log.Warning($"Shutting down empty zone instance: {zoneInstance.MapInstanceID}...");
                     ShutDownZoneInstanceRequest(zoneInstance.WorldServerID, zoneInstance.MapInstanceID);
                 }
             }
@@ -83,7 +83,7 @@ namespace OWSInstanceLauncher.Services
             
             if (responseMessage.IsSuccessStatusCode)
             {
-                Log.Information("Succeeded Shutting Down Server Instance: {responseMessage.ReasonPhrase}");
+                Log.Information($"Succeeded Shutting Down Server Instance: {responseMessage.ReasonPhrase}");
                 return true;
             }
             else
