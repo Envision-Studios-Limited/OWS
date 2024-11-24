@@ -13,5 +13,7 @@ namespace OWSData.Models.StoredProcs
         public int PlayerGroupTypeID { get; set; }
         public int ReadyState { get; set; }
         public DateTime CreateDate { get; set; }
+        public DateTime DateAdded { get; set; }
+        public int TeamNumber { get; set; }
     }
 }

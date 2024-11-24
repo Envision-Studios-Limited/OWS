@@ -19,6 +19,6 @@ namespace OWSData.Models.StoredProcs
         public int AbilityLevel { get; set; }
         public string CharHasAbilitiesCustomJSON { get; set; }
         public int CharacterID { get; set; }
-        public string CharName { get; set; }
+        public string CharacterName { get; set; }
     }
 }

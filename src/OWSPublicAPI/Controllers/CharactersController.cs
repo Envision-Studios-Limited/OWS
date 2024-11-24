@@ -30,7 +30,7 @@ namespace OWSPublicAPI.Controllers
     public class CharactersController : Controller
     {
         private readonly Container _container;
-        private readonly IUsersRepository _usersRepository;
+        private readonly IAccountRepository _accountRepository;
         private readonly ICharactersRepository _charactersRepository;
         private readonly IHeaderCustomerGUID _customerGuid;
         private readonly ICustomCharacterDataSelector _customCharacterDataSelector;
@@ -42,11 +42,11 @@ namespace OWSPublicAPI.Controllers
         /// <remarks>
         /// All dependencies are injected.
         /// </remarks>
-        public CharactersController(Container container, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, 
+        public CharactersController(Container container, IAccountRepository accountRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, 
             ICustomCharacterDataSelector customCharacterDataSelector, IGetReadOnlyPublicCharacterData getReadOnlyPublicCharacterData)
         {
             _container = container;
-            _usersRepository = usersRepository;
+            _accountRepository = accountRepository;
             _charactersRepository = charactersRepository;
             _customerGuid = customerGuid;
             _customCharacterDataSelector = customCharacterDataSelector;
@@ -81,7 +81,7 @@ namespace OWSPublicAPI.Controllers
         [SwaggerResponse(404)]*/
         public async Task<IActionResult> GetByName([FromBody] GetByNameDTO request)
         {
-            GetByNameRequest getByNameRequest = new GetByNameRequest(request, _usersRepository, _charactersRepository, _customerGuid, _customCharacterDataSelector, _getReadOnlyPublicCharacterData);
+            GetByNameRequest getByNameRequest = new GetByNameRequest(request, _accountRepository, _charactersRepository, _customerGuid, _customCharacterDataSelector, _getReadOnlyPublicCharacterData);
             return await getByNameRequest.Handle();
         }
 

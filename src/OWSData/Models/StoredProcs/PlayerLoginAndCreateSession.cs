@@ -7,13 +7,14 @@ namespace OWSData.Models.StoredProcs
 {
     public class PlayerLoginAndCreateSession
     {
-        public bool Authenticated { get; set; }
-        public Guid? UserSessionGuid { get; set; }
-        public string ErrorMessage { get; set; }
+        public bool Authenticated { get; set; }  // Whether the player was authenticated or not
+        public Guid? AccountSessionGuid { get; set; }  // The AccountSessionGUID generated during login
+        public string ErrorMessage { get; set; }  // The error message (if any)
 
         public PlayerLoginAndCreateSession()
         {
-            ErrorMessage = "";
+            ErrorMessage = "";  // Default to an empty error message
         }
     }
+
 }

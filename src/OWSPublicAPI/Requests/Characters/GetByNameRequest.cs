@@ -23,7 +23,7 @@ namespace OWSPublicAPI.Requests.Characters
     {
         private readonly GetByNameDTO _getByNameDTO;
         private readonly Guid _customerGUID;
-        private readonly IUsersRepository _usersRepository;
+        private readonly IAccountRepository _accountRepository;
         private readonly ICharactersRepository _charactersRepository;
         private readonly ICustomCharacterDataSelector _customCharacterDataSelector;
         private readonly IGetReadOnlyPublicCharacterData _getReadOnlyPublicCharacterData;
@@ -34,12 +34,12 @@ namespace OWSPublicAPI.Requests.Characters
         /// <remarks>
         /// Injects the dependencies for the GetByNameRequest.
         /// </remarks>
-        public GetByNameRequest(GetByNameDTO getByNameDTO, IUsersRepository usersRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, 
+        public GetByNameRequest(GetByNameDTO getByNameDTO, IAccountRepository accountRepository, ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid, 
             ICustomCharacterDataSelector customCharacterDataSelector, IGetReadOnlyPublicCharacterData getReadOnlyPublicCharacterData)
         {
             _getByNameDTO = getByNameDTO;
             _customerGUID = customerGuid.CustomerGUID;
-            _usersRepository = usersRepository;
+            _accountRepository = accountRepository;
             _charactersRepository = charactersRepository;
             _customCharacterDataSelector = customCharacterDataSelector;
             _getReadOnlyPublicCharacterData = getReadOnlyPublicCharacterData;
@@ -56,10 +56,10 @@ namespace OWSPublicAPI.Requests.Characters
             CharacterAndCustomData Output = new CharacterAndCustomData();
 
             //Get the User Session
-            GetUserSession userSession = await _usersRepository.GetUserSession(_customerGUID, new Guid(_getByNameDTO.UserSessionGUID));
+            GetAccountSession userSession = await _accountRepository.GetAccountSession(_customerGUID, new Guid(_getByNameDTO.UserSessionGUID));
 
             //Make sure the User Session is valid
-            if (userSession == null || !userSession.UserGuid.HasValue)
+            if (userSession == null || !userSession.AccountID.HasValue)
             {
                 return new BadRequestObjectResult(Output);
             }
@@ -68,7 +68,7 @@ namespace OWSPublicAPI.Requests.Characters
             GetCharByCharName characterData = await _charactersRepository.GetCharByCharName(_customerGUID, _getByNameDTO.CharacterName);
 
             //Make sure the character data is valid and in the right User Session
-            if (characterData == null || !characterData.UserGuid.HasValue || characterData.UserGuid != userSession.UserGuid)
+            if (characterData == null || !characterData.AccountID.HasValue || characterData.AccountID != userSession.AccountID)
             {
                 return new BadRequestObjectResult(Output);
             }

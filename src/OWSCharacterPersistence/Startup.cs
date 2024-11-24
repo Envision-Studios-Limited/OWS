@@ -139,15 +139,15 @@ namespace OWSCharacterPersistence
                 {
                     case "postgres":
                         container.Register<ICharactersRepository, OWSData.Repositories.Implementations.Postgres.CharactersRepository>(Lifestyle.Scoped);
-                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.Postgres.UsersRepository>(Lifestyle.Scoped);
+                        container.Register<IAccountRepository, OWSData.Repositories.Implementations.Postgres.AccountRepository>(Lifestyle.Scoped);
                         break;
                     case "mysql":
                         container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MySQL.CharactersRepository>(Lifestyle.Scoped);
-                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MySQL.UsersRepository>(Lifestyle.Scoped);
+                        container.Register<IAccountRepository, OWSData.Repositories.Implementations.MySQL.AccountRepository>(Lifestyle.Scoped);
                         break;
                     default: // Default to MSSQL
                         container.Register<ICharactersRepository, OWSData.Repositories.Implementations.MSSQL.CharactersRepository>(Lifestyle.Scoped);
-                        container.Register<IUsersRepository, OWSData.Repositories.Implementations.MSSQL.UsersRepository>(Lifestyle.Scoped);
+                        container.Register<IAccountRepository, OWSData.Repositories.Implementations.MSSQL.AccountRepository>(Lifestyle.Scoped);
                         break;
                 }
             }

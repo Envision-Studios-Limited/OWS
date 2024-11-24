@@ -12,6 +12,6 @@ namespace OWSData.Models.Tables
         public int Quantity { get; set; }
         public bool Equipped { get; set; }
 
-        public Characters C { get; set; }
+        public Character C { get; set; }
     }
 }

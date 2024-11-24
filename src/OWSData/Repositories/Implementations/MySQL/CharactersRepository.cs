@@ -40,7 +40,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 parameters.Add("@CharName", characterName);
                 parameters.Add("@MapInstanceID", mapInstanceID);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -84,7 +84,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 parameters.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
                 parameters.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -242,7 +242,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                     parameters,
                     commandType: CommandType.Text);
 
-                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
+                Character outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -330,17 +330,17 @@ namespace OWSData.Repositories.Implementations.MySQL
                     outputObject.MapNameToStart = outputMap.MapName;
                 }
 
-                if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                // if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                if (outputCharacter.IsInternalNetworkTestUser)
                 {
                     outputObject.ServerIP = "127.0.0.1";
                 }
-
             }
 
             return outputObject;
         }
 
-                 public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
+        public async Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0)
         {
             using (Connection)
             {
@@ -434,7 +434,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                         commandType: CommandType.Text);
                 }
 
-                await Connection.ExecuteAsync(MySQLQueries.UpdateUserLastAccess,
+                await Connection.ExecuteAsync(MySQLQueries.UpdateAccountLastOnlineDate,
                     p,
                     commandType: CommandType.Text);
             }
@@ -448,7 +448,7 @@ namespace OWSData.Repositories.Implementations.MySQL
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 

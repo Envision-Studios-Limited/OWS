@@ -40,37 +40,46 @@ namespace OWSData.Repositories.Implementations.Postgres
                 parameters.Add("@CharName", characterName);
                 parameters.Add("@MapInstanceID", mapInstanceID);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                // Fetch the CharacterID based on the character name
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<int>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
-                var outputZone = await Connection.QuerySingleOrDefaultAsync<Maps>(GenericQueries.GetZoneName,
+                // Fetch the ZoneName based on the map instance ID
+                var outputZone = await Connection.QuerySingleOrDefaultAsync<string>(GenericQueries.GetZoneName,
                     parameters,
                     commandType: CommandType.Text);
 
-                if (outputCharacter.CharacterId > 0)
+                // If the character exists (CharacterID is greater than 0)
+                if (outputCharacter > 0)
                 {
-                    parameters.Add("@CharacterID", outputCharacter.CharacterId);
-                    parameters.Add("@ZoneName", outputZone.ZoneName);
+                    parameters.Add("@CharacterID", outputCharacter);
+                    parameters.Add("@ZoneName", outputZone);
 
+                    // Remove the character from all instances
                     await Connection.ExecuteAsync(GenericQueries.RemoveCharacterFromAllInstances,
                         parameters,
                         commandType: CommandType.Text);
 
+                    // Add the character to the specified map instance
                     await Connection.ExecuteAsync(GenericQueries.AddCharacterToInstance,
                         parameters,
                         commandType: CommandType.Text);
 
+                    // Update the character's map name (zone)
                     await Connection.ExecuteAsync(GenericQueries.UpdateCharacterZone,
                         parameters,
                         commandType: CommandType.Text);
                 }
+
+                // Commit the transaction after successful operations
                 transaction.Commit();
             }
-            catch
+            catch (Exception ex)
             {
+                // Rollback the transaction in case of an error
                 transaction.Rollback();
-                throw new Exception("Database Exception in AddCharacterToMapInstanceByCharName!");
+                throw new Exception("Database Exception in AddCharacterToMapInstanceByCharName!", ex);
             }
         }
 
@@ -84,7 +93,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 parameters.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
                 parameters.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -242,7 +251,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                     parameters,
                     commandType: CommandType.Text);
 
-                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
+                Character outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -330,11 +339,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                     outputObject.MapNameToStart = outputMap.MapName;
                 }
 
-                if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                // if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                if (outputCharacter.IsInternalNetworkTestUser)
                 {
                     outputObject.ServerIP = "127.0.0.1";
                 }
-
             }
 
             return outputObject;
@@ -434,7 +443,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                         commandType: CommandType.Text);
                 }
 
-                await Connection.ExecuteAsync(PostgresQueries.UpdateUserLastAccess,
+                await Connection.ExecuteAsync(PostgresQueries.UpdateAccountLastOnlineDate,
                     p,
                     commandType: CommandType.Text);
             }
@@ -448,7 +457,7 @@ namespace OWSData.Repositories.Implementations.Postgres
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 

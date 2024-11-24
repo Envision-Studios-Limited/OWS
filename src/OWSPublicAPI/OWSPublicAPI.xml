@@ -4,6 +4,128 @@
         <name>OWSPublicAPI</name>
     </assembly>
     <members>
+        <member name="T:OWSPublicAPI.Controllers.AccountController">
+            <summary>
+            Public Account related API calls.
+            </summary>
+            <remarks>
+            Contains account related API calls that are all publicly accessible.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.#ctor(Microsoft.Extensions.Logging.ILogger{OWSPublicAPI.Controllers.AccountController},SimpleInjector.Container,OWSData.Repositories.Interfaces.IAccountRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID,Microsoft.Extensions.Options.IOptions{OWSShared.Options.PublicAPIOptions},Microsoft.Extensions.Options.IOptions{OWSShared.Options.APIPathOptions},System.Net.Http.IHttpClientFactory)">
+            <summary>
+            Constructor for Public Account related API calls.
+            </summary>
+            <remarks>
+            All dependencies are injected.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.CreateCharacter(OWSPublicAPI.Requests.Account.CreateCharacterRequest)">
+            <summary>
+            Creates a new Character.
+            </summary>
+            <remarks>
+            Create a new Character and attach it to the Account referenced by the AccountSessionGUID. ClassName is the name of the Class you setup in the management console (from the Characters tab). 
+            Classes are meant to be default values for creating characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE client
+            that has not connected to a UE server yet.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.CreateCharacterUsingDefaultCharacterValues(OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO)">
+            <summary>
+            Creates a new Character using DefaultCharacterValues.
+            </summary>
+            <remarks>
+            Create a new Character and attach it to the Account referenced by the AccountSessionGUID. DefaultSetName is the name of the DefaultCharacterValues row. 
+            DefaultCharacterValues and DefaultCustomCharacterData are used to set the default starting values for new characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE client
+            that has not connected to a UE server yet.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.GetAllCharacters(OWSPublicAPI.Requests.Account.GetAllCharactersRequest)">
+            <summary>
+            Get All Characters for a specified Account.
+            </summary>
+            <remarks>
+            Send in a AccountSessionGUID to specify which Account to get all Characters for.  Use GetAllCharactersWithCustomData to also get all attached custom data with the same API call.
+            Accounts may have zero or more Characters.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.GetPlayerGroupsCharacterIsIn(OWSPublicAPI.Requests.Account.GetPlayerGroupsCharacterIsInRequest)">
+            <summary>
+            Gets a list of Player Groups that a Character is in.
+            </summary>
+            <remarks>
+            Send a AccountSessionGUID, a Character's CharacterName, and a PlayerGroupTypeID to get a list of groups the player is in.  Set the PlayerGroupTypeID parameter to zero to remove the Player Group Type filter.
+            Player Groups are persistent across player sessions and can be used to manage Party groups, Raid groups, Guilds, etc.
+            See the PlayerGroupTypes table for a list of Player Group Types.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.GetServerToConnectTo(OWSPublicAPI.Requests.Account.GetServerToConnectToRequest)">
+            <summary>
+            Gets the server to connect to for a specific character or zonename.
+            </summary>
+            <remarks>
+            Get the Zone Server to travel to based on the Account referenced by the AccountSessionGUID.  Prior to calling this API, you MUST set the Selected Character to connect with using the AccountSessionSetSelectedCharacter API for the AccountSessionGUID passed into this API.
+            Send in an empty ZoneName or ZoneName set to "GETLASTZONENAME" to use the last zone the Character was on rather than specifying a ZoneName.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.GetAccountSession(OWSPublicAPI.Requests.Account.GetAccountSessionRequest)">
+            <summary>
+            Gets the Account Session from a AccountSessionGUID.
+            </summary>
+            <remarks>
+            Get the Account Session object (some values may be null if a selected character is not set).
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.LoginAndCreateSession(OWSPublicAPI.Requests.Account.LoginAndCreateSessionRequest)">
+            <summary>
+            Login and create a Account Session that you can reference via a AccountSessionGUID.
+            </summary>
+            <remarks>
+            Login by passing an Email and Password.  See ExternalLoginAndCreateSession when using an external login provider (such as Epic Game Store or Xsolla).
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.ExternalLoginAndCreateSession(OWSPublicAPI.Requests.Account.ExternalLoginAndCreateSessionRequest)">
+            <summary>
+            Login and create a Account Session using an External Login Provider (such as Epic Game Store or Xsolla).
+            </summary>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.Logout(OWSPublicAPI.DTOs.LogoutDTO)">
+            <summary>
+            Logout of a Account Session
+            </summary>
+            <remarks>
+            Logout of a Account Session based on a AccountSessionGUID.  This method is for logout from the client side of a game before connecting to a UE server.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.AccountSessionSetSelectedCharacter(OWSPublicAPI.Requests.Account.AccountSessionSetSelectedCharacterRequest)">
+            <summary>
+            Set the Character that has been selected to play for a Account Session (AccountSessionGUID).
+            </summary>
+            <remarks>
+            This method MUST be called on a Account Session before calling the GetServerToConnectTo API.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.SetSelectedCharacterAndGetAccountSession(OWSPublicAPI.Requests.Account.SetSelectedCharacterAndGetAccountSessionRequest)">
+            <summary>
+            Set the Character that has been selected to play for a Account Session (AccountSessionGUID) and get the complete Account Session object all in one API call.
+            </summary>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.RegisterAccount(OWSPublicAPI.DTOs.RegisterAccountDTO)">
+            <summary>
+            Register a new account by sending FirstName, LastName, Email, and Password.
+            </summary>
+            <remarks>
+            Register a new Account and then Logs the Account in and Creates a Account Session.  Implement your own IPublicAPIInputValidation to specify your specific validation rules for FirstName, LastName, Email, and Password.  You can wire up the dependency injection for your custom IPublicAPIInputValidation in Startup.cs.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Controllers.AccountController.RemoveCharacter(OWSPublicAPI.Requests.Account.RemoveCharacterRequest)">
+            <summary>
+            Remove a Character from this Account (AccountSessionGUID).
+            </summary>
+            <remarks>
+            Removes a Character from the Account.  This method permanently deletes the character and all associated data.  In the future, it might make sense to modify this to only mark the character as removed to support restoring an accidentally removed character.
+            </remarks>
+        </member>
         <member name="T:OWSPublicAPI.Controllers.CharactersController">
             <summary>
             Public Character related API calls.
@@ -12,7 +134,7 @@
             Contains character related API calls that are all publicly accessible.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Controllers.CharactersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
+        <member name="M:OWSPublicAPI.Controllers.CharactersController.#ctor(SimpleInjector.Container,OWSData.Repositories.Interfaces.IAccountRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
             <summary>
             Constructor for Public Character related API calls.
             </summary>
@@ -52,128 +174,6 @@
             Get the Api Status and return true
             </remarks>
         </member>
-        <member name="T:OWSPublicAPI.Controllers.UsersController">
-            <summary>
-            Public User related API calls.
-            </summary>
-            <remarks>
-            Contains user related API calls that are all publicly accessible.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.#ctor(Microsoft.Extensions.Logging.ILogger{OWSPublicAPI.Controllers.UsersController},SimpleInjector.Container,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID,Microsoft.Extensions.Options.IOptions{OWSShared.Options.PublicAPIOptions},Microsoft.Extensions.Options.IOptions{OWSShared.Options.APIPathOptions},System.Net.Http.IHttpClientFactory)">
-            <summary>
-            Constructor for Public User related API calls.
-            </summary>
-            <remarks>
-            All dependencies are injected.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.CreateCharacter(OWSPublicAPI.Requests.Users.CreateCharacterRequest)">
-            <summary>
-            Creates a new Character.
-            </summary>
-            <remarks>
-            Create a new Character and attach it to the User referenced by the UserSessionGUID. ClassName is the name of the Class you setup in the management console (from the Characters tab). 
-            Classes are meant to be default values for creating characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE client
-            that has not connected to a UE server yet.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.CreateCharacterUsingDefaultCharacterValues(OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO)">
-            <summary>
-            Creates a new Character using DefaultCharacterValues.
-            </summary>
-            <remarks>
-            Create a new Character and attach it to the User referenced by the UserSessionGUID. DefaultSetName is the name of the DefaultCharacterValues row. 
-            DefaultCharacterValues and DefaultCustomCharacterData are used to set the default starting values for new characters. The purpose is to ensure that players are not able to hack their starting stats. This is needed because Characters are created from and unsecure UE client
-            that has not connected to a UE server yet.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.GetAllCharacters(OWSPublicAPI.Requests.Users.GetAllCharactersRequest)">
-            <summary>
-            Get All Characters for a specified User.
-            </summary>
-            <remarks>
-            Send in a UserSessionGUID to specify which User to get all Characters for.  Use GetAllCharactersWithCustomData to also get all attached custom data with the same API call.
-            Users may have zero or more Characters.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.GetPlayerGroupsCharacterIsIn(OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest)">
-            <summary>
-            Gets a list of Player Groups that a Character is in.
-            </summary>
-            <remarks>
-            Send a UserSessionGUID, a Character's CharacterName, and a PlayerGroupTypeID to get a list of groups the player is in.  Set the PlayerGroupTypeID parameter to zero to remove the Player Group Type filter.
-            Player Groups are persistent across player sessions and can be used to manage Party groups, Raid groups, Guilds, etc.
-            See the PlayerGroupTypes table for a list of Player Group Types.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.GetServerToConnectTo(OWSPublicAPI.Requests.Users.GetServerToConnectToRequest)">
-            <summary>
-            Gets the server to connect to for a specific character or zonename.
-            </summary>
-            <remarks>
-            Get the Zone Server to travel to based on the User referenced by the UserSessionGUID.  Prior to calling this API, you MUST set the Selected Character to connect with using the UserSessionSetSelectedCharacter API for the UserSessionGUID passed into this API.
-            Send in an empty ZoneName or ZoneName set to "GETLASTZONENAME" to use the last zone the Character was on rather than specifying a ZoneName.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.GetUserSession(OWSPublicAPI.Requests.Users.GetUserSessionRequest)">
-            <summary>
-            Gets the User Session from a UserSessionGUID.
-            </summary>
-            <remarks>
-            Get the User Session object (some values may be null if a selected character is not set).
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.LoginAndCreateSession(OWSPublicAPI.Requests.Users.LoginAndCreateSessionRequest)">
-            <summary>
-            Login and create a User Session that you can reference via a UserSessionGUID.
-            </summary>
-            <remarks>
-            Login by passing an Email and Password.  See ExternalLoginAndCreateSession when using an external login provider (such as Epic Game Store or Xsolla).
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.ExternalLoginAndCreateSession(OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest)">
-            <summary>
-            Login and create a User Session using an External Login Provider (such as Epic Game Store or Xsolla).
-            </summary>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.Logout(OWSPublicAPI.DTOs.LogoutDTO)">
-            <summary>
-            Logout of a User Session
-            </summary>
-            <remarks>
-            Logout of a User Session based on a UserSessionGUID.  This method is for logout from the client side of a game before connecting to a UE server.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.UserSessionSetSelectedCharacter(OWSPublicAPI.Requests.Users.UserSessionSetSelectedCharacterRequest)">
-            <summary>
-            Set the Character that has been selected to play for a User Session (UserSessionGUID).
-            </summary>
-            <remarks>
-            This method MUST be called on a User Session before calling the GetServerToConnectTo API.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.SetSelectedCharacterAndGetUserSession(OWSPublicAPI.Requests.Users.SetSelectedCharacterAndGetUserSessionRequest)">
-            <summary>
-            Set the Character that has been selected to play for a User Session (UserSessionGUID) and get the complete User Session object all in one API call.
-            </summary>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.RegisterUser(OWSPublicAPI.DTOs.RegisterUserDTO)">
-            <summary>
-            Register a new User account by sending FirstName, LastName, Email, and Password.
-            </summary>
-            <remarks>
-            Register a new User and then Logs the User in and Creates a User Session.  Implement your own IPublicAPIInputValidation to specify your specific validation rules for FirstName, LastName, Email, and Password.  You can wire up the dependency injection for your custom IPublicAPIInputValidation in Startup.cs.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Controllers.UsersController.RemoveCharacter(OWSPublicAPI.Requests.Users.RemoveCharacterRequest)">
-            <summary>
-            Remove a Character from this User (UserSessionGUID).
-            </summary>
-            <remarks>
-            Removes a Character from the User.  This method permanently deletes the character and all associated data.  In the future, it might make sense to modify this to only mark the character as removed to support restoring an accidentally removed character.
-            </remarks>
-        </member>
         <member name="T:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO">
             <summary>
             CreateCharacterUsingDefaultCharacterValues Data Transfer Object
@@ -182,12 +182,12 @@
             The object is used to collect input from the CreateCharacterUsingDefaultCharacterValues Request
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO.UserSessionGUID">
+        <member name="P:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO.AccountSessionID">
             <summary>
             UserSessionGUID Request Paramater.
             </summary>
             <remarks>
-            Contains the User Session GUID from the request.  This identifies the User we are modifying.
+            Contains the Account Session ID from the request.  This identifies the User we are modifying.
             </remarks>
         </member>
         <member name="P:OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO.CharacterName">
@@ -230,7 +230,7 @@
             Contains the Character Name from the request
             </remarks>
         </member>
-        <member name="T:OWSPublicAPI.DTOs.RegisterUserDTO">
+        <member name="T:OWSPublicAPI.DTOs.RegisterAccountDTO">
             <summary>
             RegisterUser Data Transfer Object
             </summary>
@@ -238,7 +238,7 @@
             This object is for collecting POST request parameters
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.DTOs.RegisterUserDTO.Email">
+        <member name="P:OWSPublicAPI.DTOs.RegisterAccountDTO.Email">
             <summary>
             Email
             </summary>
@@ -246,7 +246,7 @@
             Email for the user.  This value is not meant to be displayed in game.
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.DTOs.RegisterUserDTO.Password">
+        <member name="P:OWSPublicAPI.DTOs.RegisterAccountDTO.Password">
             <summary>
             Password
             </summary>
@@ -254,20 +254,20 @@
             Password for the user.  Passwords are one way encrypted with SHA 256 and a 25 character Salt when using the MSSQL implementation of UsersRepository.
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.DTOs.RegisterUserDTO.FirstName">
+        <member name="P:OWSPublicAPI.DTOs.RegisterAccountDTO.AccountName">
             <summary>
-            First Name
+            Account name
             </summary>
             <remarks>
-            First Name for the user.  This value is not meant to be displayed in game.
+            Account Name for the user.  This value is not meant to be displayed in game.
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.DTOs.RegisterUserDTO.LastName">
+        <member name="P:OWSPublicAPI.DTOs.RegisterAccountDTO.Discord">
             <summary>
-            Last Name
+            Discord
             </summary>
             <remarks>
-            Last Name for the user.  This value is not meant to be displayed in game.
+            Discord ID for the user.
             </remarks>
         </member>
         <member name="T:OWSPublicAPI.Program">
@@ -294,6 +294,254 @@
             Configure the web host.
             </remarks>
         </member>
+        <member name="T:OWSPublicAPI.Requests.Account.CreateCharacterRequest">
+            <summary>
+            CreateCharacterRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Account/CreateCharacter requests.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.CreateCharacterRequest.AccountSessionGUID">
+            <summary>
+            AccountSessionGUID Request Paramater.
+            </summary>
+            <remarks>
+            Contains the Account Session GUID from the request.  This identifies the Account we are modifying.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.CreateCharacterRequest.CharacterName">
+            <summary>
+            CharacterName Request Paramater.
+            </summary>
+            <remarks>
+            Contains the Character Name from the request.  This is the new Character Name to create.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.CreateCharacterRequest.ClassName">
+            <summary>
+            ClassName Request Paramater.
+            </summary>
+            <remarks>
+            Contains the Class Name from the request.  This sets the default values for the new Character.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.CreateCharacterRequest.SetData(OWSData.Repositories.Interfaces.IAccountRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Set Dependencies for CreateCharacterRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the CreateCharacterRequest.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.CreateCharacterRequest.Handle">
+            <summary>
+            Handles the CreateCharacterRequest
+            </summary>
+            <remarks>
+            Overrides IRequestHandler Handle().
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Account.CreateCharacterUsingDefaultCharacterValuesRequest">
+            <summary>
+            CreateCharacterRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Account/CreateCharacter requests.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.CreateCharacterUsingDefaultCharacterValuesRequest.#ctor(OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO,OWSData.Repositories.Interfaces.IAccountRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Constrcutor for CreateCharacterUsingDefaultCharacterValuesRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the CreateCharacterUsingDefaultCharacterValuesRequest.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.CreateCharacterUsingDefaultCharacterValuesRequest.Handle">
+            <summary>
+            Handles the CreateCharacterRequest
+            </summary>
+            <remarks>
+            Overrides IRequestHandler Handle().
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Account.ExternalLoginAndCreateSessionRequest">
+            <summary>
+            ExternalLoginAndCreateSessionRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Account/ExternalLoginAndCreateSession requests.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.ExternalLoginAndCreateSessionRequest.Email">
+            <summary>
+            Email Request Paramater.
+            </summary>
+            <remarks>
+            The email is used as the primary ID for the sign in credentials.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.ExternalLoginAndCreateSessionRequest.Password">
+            <summary>
+            Password Request Paramater.
+            </summary>
+            <remarks>
+            The password is part of the sign in credentials.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.ExternalLoginAndCreateSessionRequest.SetData(OWSData.Repositories.Interfaces.IAccountRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Set Dependencies for ExternalLoginAndCreateSessionRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the ExternalLoginAndCreateSessionRequest.
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Account.GetAllCharactersRequest">
+            <summary>
+            GetAllCharactersRequest
+            </summary>
+            <remarks>
+            This request object handles requests for api/Account/GetAllCharacters
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.GetAllCharactersRequest.AccountSessionGUID">
+            <summary>
+            AccountSessionGUID
+            </summary>
+            <remarks>
+            This is the Account Session GUID to determine the Account to get all Characters for.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.GetAllCharactersRequest.SetData(OWSData.Repositories.Interfaces.IAccountRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            SetData
+            </summary>
+            <remarks>
+            Used to pass dependencies to the Request object (for performance reasons).
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.GetAllCharactersRequest.Handle">
+            <summary>
+            Handle
+            </summary>
+            <remarks>
+            This handles the Request.
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Account.GetPlayerGroupsCharacterIsInRequest">
+            <summary>
+            GetPlayerGroupsCharacterIsInRequest
+            </summary>
+            <remarks>
+            This request object handles requests for api/Account/GetPlayerGroupsCharacterIsIn
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.GetPlayerGroupsCharacterIsInRequest.AccountSessionGUID">
+            <summary>
+            AccountSessionGUID
+            </summary>
+            <remarks>
+            This is the Account Session GUID to determine the Account to get Player Groups for.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.GetPlayerGroupsCharacterIsInRequest.CharacterName">
+            <summary>
+            CharacterName
+            </summary>
+            <remarks>
+            CharacterName filters the list of Player Groups to only return for this CharacterName.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.GetPlayerGroupsCharacterIsInRequest.PlayerGroupTypeID">
+            <summary>
+            PlayerGroupTypeID
+            </summary>
+            <remarks>
+            PlayerGroupTypeID filters the list of Player Groups to only return for this PlayerGroupTypeID.  Set this parameter to zero to remove the Player Group Type filter.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.GetPlayerGroupsCharacterIsInRequest.SetData(OWSData.Repositories.Interfaces.IAccountRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            SetData
+            </summary>
+            <remarks>
+            Used to pass dependencies to the Request object (for performance reasons).
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.GetPlayerGroupsCharacterIsInRequest.Handle">
+            <summary>
+            Handle
+            </summary>
+            <remarks>
+            This handles the Request.
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Account.RegisterAccountRequest">
+            <summary>
+            Register a User
+            </summary>
+            <remarks>
+            Register a user with the system.  You can control validation with a custom IIPublicAPIInputValidation implementation.  See DefaultPublicAPIInputValidation for an example.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.RegisterAccountRequest.#ctor(OWSPublicAPI.DTOs.RegisterAccountDTO,OWSData.Repositories.Interfaces.IAccountRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            RegisterUserRequest Constructor
+            </summary>
+            <remarks>
+            Initialize the RegisterUserRequest object with dependencies
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.RegisterAccountRequest.Handle">
+            <summary>
+            RegisterUserRequest Request Handler
+            </summary>
+            <remarks>
+            Handle the RegisterUserRequest request
+            </remarks>
+        </member>
+        <member name="T:OWSPublicAPI.Requests.Account.RemoveCharacterRequest">
+            <summary>
+            RemoveCharacterRequest Handler
+            </summary>
+            <remarks>
+            Handles api/Users/RemoveCharacter requests.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.RemoveCharacterRequest.AccountSessionGUID">
+            <summary>
+            UserSessionGUID Request Paramater.
+            </summary>
+            <remarks>
+            Contains the User Session GUID from the request.  This identifies the User we are modifying.
+            </remarks>
+        </member>
+        <member name="P:OWSPublicAPI.Requests.Account.RemoveCharacterRequest.CharacterName">
+            <summary>
+            CharacterName Request Paramater.
+            </summary>
+            <remarks>
+            Contains the Character Name from the request.  This is the new Character Name to create.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.RemoveCharacterRequest.SetData(OWSData.Repositories.Interfaces.IAccountRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Set Dependencies for CreateCharacterRequest
+            </summary>
+            <remarks>
+            Injects the dependencies for the CreateCharacterRequest.
+            </remarks>
+        </member>
+        <member name="M:OWSPublicAPI.Requests.Account.RemoveCharacterRequest.Handle">
+            <summary>
+            Handles the CreateCharacterRequest
+            </summary>
+            <remarks>
+            Overrides IRequestHandler Handle().
+            </remarks>
+        </member>
         <member name="T:OWSPublicAPI.Requests.Characters.GetByNameRequest">
             <summary>
             GetByNameRequest Handler
@@ -302,7 +550,7 @@
             Handles api/Characters/GetByName requests.
             </remarks>
         </member>
-        <member name="M:OWSPublicAPI.Requests.Characters.GetByNameRequest.#ctor(OWSPublicAPI.DTOs.GetByNameDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
+        <member name="M:OWSPublicAPI.Requests.Characters.GetByNameRequest.#ctor(OWSPublicAPI.DTOs.GetByNameDTO,OWSData.Repositories.Interfaces.IAccountRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID,OWSShared.Interfaces.ICustomCharacterDataSelector,OWSShared.Interfaces.IGetReadOnlyPublicCharacterData)">
             <summary>
             Constructor for GetByNameRequest
             </summary>
@@ -313,254 +561,6 @@
         <member name="M:OWSPublicAPI.Requests.Characters.GetByNameRequest.Handle">
             <summary>
             Handles the GetByNameRequest
-            </summary>
-            <remarks>
-            Overrides IRequestHandler Handle().
-            </remarks>
-        </member>
-        <member name="T:OWSPublicAPI.Requests.Users.CreateCharacterRequest">
-            <summary>
-            CreateCharacterRequest Handler
-            </summary>
-            <remarks>
-            Handles api/Users/CreateCharacter requests.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.CreateCharacterRequest.UserSessionGUID">
-            <summary>
-            UserSessionGUID Request Paramater.
-            </summary>
-            <remarks>
-            Contains the User Session GUID from the request.  This identifies the User we are modifying.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.CreateCharacterRequest.CharacterName">
-            <summary>
-            CharacterName Request Paramater.
-            </summary>
-            <remarks>
-            Contains the Character Name from the request.  This is the new Character Name to create.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.CreateCharacterRequest.ClassName">
-            <summary>
-            ClassName Request Paramater.
-            </summary>
-            <remarks>
-            Contains the Class Name from the request.  This sets the default values for the new Character.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.CreateCharacterRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID)">
-            <summary>
-            Set Dependencies for CreateCharacterRequest
-            </summary>
-            <remarks>
-            Injects the dependencies for the CreateCharacterRequest.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.CreateCharacterRequest.Handle">
-            <summary>
-            Handles the CreateCharacterRequest
-            </summary>
-            <remarks>
-            Overrides IRequestHandler Handle().
-            </remarks>
-        </member>
-        <member name="T:OWSPublicAPI.Requests.Users.CreateCharacterUsingDefaultCharacterValuesRequest">
-            <summary>
-            CreateCharacterRequest Handler
-            </summary>
-            <remarks>
-            Handles api/Users/CreateCharacter requests.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.CreateCharacterUsingDefaultCharacterValuesRequest.#ctor(OWSPublicAPI.DTOs.CreateCharacterUsingDefaultCharacterValuesDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IPublicAPIInputValidation,OWSShared.Interfaces.IHeaderCustomerGUID)">
-            <summary>
-            Constrcutor for CreateCharacterUsingDefaultCharacterValuesRequest
-            </summary>
-            <remarks>
-            Injects the dependencies for the CreateCharacterUsingDefaultCharacterValuesRequest.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.CreateCharacterUsingDefaultCharacterValuesRequest.Handle">
-            <summary>
-            Handles the CreateCharacterRequest
-            </summary>
-            <remarks>
-            Overrides IRequestHandler Handle().
-            </remarks>
-        </member>
-        <member name="T:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest">
-            <summary>
-            ExternalLoginAndCreateSessionRequest Handler
-            </summary>
-            <remarks>
-            Handles api/Users/ExternalLoginAndCreateSession requests.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest.Email">
-            <summary>
-            Email Request Paramater.
-            </summary>
-            <remarks>
-            The email is used as the primary ID for the sign in credentials.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest.Password">
-            <summary>
-            Password Request Paramater.
-            </summary>
-            <remarks>
-            The password is part of the sign in credentials.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.ExternalLoginAndCreateSessionRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID)">
-            <summary>
-            Set Dependencies for ExternalLoginAndCreateSessionRequest
-            </summary>
-            <remarks>
-            Injects the dependencies for the ExternalLoginAndCreateSessionRequest.
-            </remarks>
-        </member>
-        <member name="T:OWSPublicAPI.Requests.Users.GetAllCharactersRequest">
-            <summary>
-            GetAllCharactersRequest
-            </summary>
-            <remarks>
-            This request object handles requests for api/Users/GetAllCharacters
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.GetAllCharactersRequest.UserSessionGUID">
-            <summary>
-            UserSessionGUID
-            </summary>
-            <remarks>
-            This is the User Session GUID to determine the User to get all Characters for.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.GetAllCharactersRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
-            <summary>
-            SetData
-            </summary>
-            <remarks>
-            Used to pass dependencies to the Request object (for performance reasons).
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.GetAllCharactersRequest.Handle">
-            <summary>
-            Handle
-            </summary>
-            <remarks>
-            This handles the Request.
-            </remarks>
-        </member>
-        <member name="T:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest">
-            <summary>
-            GetPlayerGroupsCharacterIsInRequest
-            </summary>
-            <remarks>
-            This request object handles requests for api/Users/GetPlayerGroupsCharacterIsIn
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.UserSessionGUID">
-            <summary>
-            UserSessionGUID
-            </summary>
-            <remarks>
-            This is the User Session GUID to determine the User to get Player Groups for.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.CharacterName">
-            <summary>
-            CharacterName
-            </summary>
-            <remarks>
-            CharacterName filters the list of Player Groups to only return for this CharacterName.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.PlayerGroupTypeID">
-            <summary>
-            PlayerGroupTypeID
-            </summary>
-            <remarks>
-            PlayerGroupTypeID filters the list of Player Groups to only return for this PlayerGroupTypeID.  Set this parameter to zero to remove the Player Group Type filter.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
-            <summary>
-            SetData
-            </summary>
-            <remarks>
-            Used to pass dependencies to the Request object (for performance reasons).
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.GetPlayerGroupsCharacterIsInRequest.Handle">
-            <summary>
-            Handle
-            </summary>
-            <remarks>
-            This handles the Request.
-            </remarks>
-        </member>
-        <member name="T:OWSPublicAPI.Requests.Users.RegisterUserRequest">
-            <summary>
-            Register a User
-            </summary>
-            <remarks>
-            Register a user with the system.  You can control validation with a custom IIPublicAPIInputValidation implementation.  See DefaultPublicAPIInputValidation for an example.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.RegisterUserRequest.#ctor(OWSPublicAPI.DTOs.RegisterUserDTO,OWSData.Repositories.Interfaces.IUsersRepository,OWSExternalLoginProviders.Interfaces.IExternalLoginProviderFactory,OWSShared.Interfaces.IHeaderCustomerGUID)">
-            <summary>
-            RegisterUserRequest Constructor
-            </summary>
-            <remarks>
-            Initialize the RegisterUserRequest object with dependencies
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.RegisterUserRequest.Handle">
-            <summary>
-            RegisterUserRequest Request Handler
-            </summary>
-            <remarks>
-            Handle the RegisterUserRequest request
-            </remarks>
-        </member>
-        <member name="T:OWSPublicAPI.Requests.Users.RemoveCharacterRequest">
-            <summary>
-            RemoveCharacterRequest Handler
-            </summary>
-            <remarks>
-            Handles api/Users/RemoveCharacter requests.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.RemoveCharacterRequest.UserSessionGUID">
-            <summary>
-            UserSessionGUID Request Paramater.
-            </summary>
-            <remarks>
-            Contains the User Session GUID from the request.  This identifies the User we are modifying.
-            </remarks>
-        </member>
-        <member name="P:OWSPublicAPI.Requests.Users.RemoveCharacterRequest.CharacterName">
-            <summary>
-            CharacterName Request Paramater.
-            </summary>
-            <remarks>
-            Contains the Character Name from the request.  This is the new Character Name to create.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.RemoveCharacterRequest.SetData(OWSData.Repositories.Interfaces.IUsersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
-            <summary>
-            Set Dependencies for CreateCharacterRequest
-            </summary>
-            <remarks>
-            Injects the dependencies for the CreateCharacterRequest.
-            </remarks>
-        </member>
-        <member name="M:OWSPublicAPI.Requests.Users.RemoveCharacterRequest.Handle">
-            <summary>
-            Handles the CreateCharacterRequest
             </summary>
             <remarks>
             Overrides IRequestHandler Handle().

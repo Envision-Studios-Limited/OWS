@@ -17,7 +17,7 @@ namespace OWSData.Models.Tables
         public int AbilityLevel { get; set; }
         public string CharHasAbilitiesCustomJson { get; set; }
 
-        public Characters C { get; set; }
+        public Character C { get; set; }
         public ICollection<CharAbilityBarAbilities> CharAbilityBarAbilities { get; set; }
     }
 }

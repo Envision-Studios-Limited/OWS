@@ -31,37 +31,83 @@ namespace OWSData.SQL
 					tbl.StartingMapInstancePort = row.StartingMapInstancePort,
 					tbl.ZoneServerGUID = row.ZoneServerGUID;";
 
-        public static readonly string GetUserSessionSQL = @"SELECT US.CustomerGUID, US.UserGUID, US.UserSessionGUID, US.LoginDate, US.SelectedCharacterName,
-	            U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role,
-	            C.CharacterID, C.CharName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.MapName as ZoneName
-	            FROM UserSessions US
-	            INNER JOIN Users U
-		            ON U.UserGUID=US.UserGUID
-	            LEFT JOIN Characters C
-		            ON C.CustomerGUID=US.CustomerGUID
-		            AND C.CharName=US.SelectedCharacterName
-	            WHERE US.CustomerGUID=@CustomerGUID
-	            AND US.UserSessionGUID=@UserSessionGUID";
+        public static readonly string GetAccountSessionSQL = @"
+		SELECT 
+		    US.CustomerGUID, 
+		    US.AccountID, 
+		    US.AccountSessionGUID, 
+		    US.LoginDate, 
+		    US.SelectedCharacterName,
+		    A.Email, 
+		    A.AccountName, 
+		    A.CreateDate, 
+		    A.LastOnlineDate, 
+		    A.Role,
+		    C.CharacterID, 
+		    C.CharacterName, 
+		    C.X, 
+		    C.Y, 
+		    C.Z, 
+		    C.RX, 
+		    C.RY, 
+		    C.RZ, 
+		    C.MapName as ZoneName
+		FROM AccountSessions US
+		INNER JOIN AccountData A
+		    ON A.AccountID = US.AccountID
+		LEFT JOIN CharacterData C
+		    ON C.CustomerGUID = US.CustomerGUID
+		    AND C.CharacterName = US.SelectedCharacterName
+		WHERE US.CustomerGUID = @CustomerGUID
+		  AND US.AccountSessionGUID = @AccountSessionGUID;";
 
-		public static readonly string GetUserSessionOnlySQL = @"SELECT US.CustomerGUID, US.UserGUID, US.UserSessionGUID, US.LoginDate, US.SelectedCharacterName
-	            FROM UserSessions US
-	            WHERE US.CustomerGUID=@CustomerGUID
-	            AND US.UserSessionGUID=@UserSessionGUID";
+        public static readonly string GetAccountSessionOnlySQL = @"
+		SELECT 
+		    US.CustomerGUID, 
+		    US.AccountID, 
+		    US.AccountSessionGUID, 
+		    US.LoginDate, 
+		    US.SelectedCharacterName
+		FROM AccountSessions US
+		WHERE US.CustomerGUID = @CustomerGUID
+		  AND US.AccountSessionGUID = @AccountSessionGUID;";
 
-		public static readonly string GetUserSQL = @"SELECT U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role
-	            FROM Users U
-	            WHERE U.CustomerGUID=@CustomerGUID
-	            AND U.UserGUID=@UserGUID";
+        public static readonly string GetAccountSQL = @"
+		SELECT 
+		    A.Email, 
+		    A.AccountName, 
+		    A.CreateDate, 
+		    A.LastOnlineDate, 
+		    A.Role
+		FROM AccountData A
+		WHERE A.CustomerGUID = @CustomerGUID
+		  AND A.AccountID = @AccountID;";
 
-		public static readonly string GetUserFromEmailSQL = @"SELECT U.Email, U.FirstName, U.LastName, U.CreateDate, U.LastAccess, U.Role
-	            FROM Users U
-	            WHERE U.CustomerGUID=@CustomerGUID
-	            AND U.Email=@Email";
+        public static readonly string GetAccountFromEmailSQL = @"
+		SELECT 
+		    A.Email, 
+		    A.AccountName, 
+		    A.CreateDate, 
+		    A.LastOnlineDate, 
+		    A.Role
+		FROM AccountData A
+		WHERE A.CustomerGUID = @CustomerGUID
+		  AND A.Email = @Email;";
 
-		public static readonly string GetCharacterByNameSQL = @"SELECT C.CharacterID, C.CharName, C.X, C.Y, C.Z, C.RX, C.RY, C.RZ, C.MapName as ZoneName
-	            FROM Characters C
-	            WHERE C.CustomerGUID=@CustomerGUID
-	            AND C.CharName=@CharacterName";
+        public static readonly string GetCharacterByNameSQL = @"
+		SELECT 
+		    C.CharacterID, 
+		    C.CharacterName AS CharName, 
+		    C.X, 
+		    C.Y, 
+		    C.Z, 
+		    C.RX, 
+		    C.RY, 
+		    C.RZ, 
+		    C.MapName AS ZoneName
+		FROM CharacterData C
+		WHERE C.CustomerGUID = @CustomerGUID
+		  AND C.CharacterName = @CharacterName;";
 
 		public static readonly string GetWorldServerSQL = @"SELECT WorldServerID
 				FROM WorldServers 
@@ -87,51 +133,119 @@ namespace OWSData.SQL
 
 		#region Character Queries
 
-		public static readonly string AddAbilityToCharacter = @"INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
-				SELECT @CustomerGUID, 
-					(SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName AND C.CustomerGUID = @CustomerGUID ORDER BY C.CharacterID),
-					(SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName AND A.CustomerGUID = @CustomerGUID ORDER BY A.AbilityID),
-					@AbilityLevel,
-					@CharHasAbilitiesCustomJSON";
+		public static readonly string AddAbilityToCharacter = @"
+		INSERT INTO CharHasAbilities (CustomerGUID, CharacterID, AbilityID, AbilityLevel, CharHasAbilitiesCustomJSON)
+		SELECT @CustomerGUID, 
+		    (SELECT TOP 1 C.CharacterID 
+		     FROM CharacterData C 
+		     WHERE C.CharacterName = @CharacterName 
+		     AND C.CustomerGUID = @CustomerGUID 
+		     ORDER BY C.CharacterID),
+		    (SELECT TOP 1 A.AbilityID 
+		     FROM Abilities A 
+		     WHERE A.AbilityName = @AbilityName 
+		     AND A.CustomerGUID = @CustomerGUID 
+		     ORDER BY A.AbilityID),
+		    @AbilityLevel,
+		    @CharHasAbilitiesCustomJSON";
 
-		public static readonly string AddCharacterUsingDefaultCharacterValues = @"INSERT INTO Characters (CustomerGUID, UserGUID, Email, CharName, MapName, X, Y, Z, RX, RY, RZ, Perception, Acrobatics, Climb, Stealth, ClassID)
-				OUTPUT inserted.CharacterID
-				SELECT @CustomerGUID, @UserGUID, '', @CharacterName, DCR.StartingMapName, DCR.X, DCR.Y, DCR.Z, DCR.RX, DCR.RY, DCR.RZ, 0, 0, 0, 0, 0
-				FROM DefaultCharacterValues DCR 
-				WHERE DCR.CustomerGUID = @CustomerGUID 
-					AND DCR.DefaultSetName = @DefaultSetName";
+		public static readonly string AddCharacterUsingDefaultCharacterValues = @"
+		INSERT INTO CharacterData (
+		    CustomerGUID, AccountID, CharacterName, MapName, X, Y, Z, RX, RY, RZ, Fishing, Mining, 
+		    Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring, Hunting, Leatherworking, 
+		    Farming, Herblore, Spirit, Magic, TeamNumber, Thirst, Hunger, Gold, Score, CharacterLevel, 
+		    Gender, XP, HitDie, Wounds, Size, Weight, MaxHealth, Health, HealthRegenRate, MaxMana, Mana, 
+		    ManaRegenRate, MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate, 
+		    MaxStamina, Stamina, StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength, 
+		    Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility, Fortitude, Reflex, Willpower, 
+		    BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed, CritChance, CritMultiplier, Haste, SpellPower, 
+		    SpellPenetration, Defense, Dodge, Parry, Avoidance, Versatility, Multishot, Initiative, NaturalArmor, 
+		    PhysicalArmor, BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, Range, Speed, Silver, 
+		    Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, ServerIP, LastActivity, Description, 
+		    DefaultPawnClassPath, IsInternalNetworkTestUser, ClassID, BaseMesh, IsAdmin, IsModerator, CreateDate
+		)
+		OUTPUT inserted.CharacterID
+		SELECT 
+		    @CustomerGUID, 
+		    @UserGUID, 
+		    @CharacterName, 
+		    DCR.StartingMapName, 
+		    DCR.X, 
+		    DCR.Y, 
+		    DCR.Z, 
+		    DCR.RX, 
+		    DCR.RY, 
+		    DCR.RZ, 
+		    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		    0, 0, 0, 0, 0
+		FROM DefaultCharacterValues DCR
+		WHERE DCR.CustomerGUID = @CustomerGUID 
+		    AND DCR.DefaultSetName = @DefaultSetName;";
 
-        public static readonly string RemoveAbilityFromCharacter = @"DELETE FROM CharHasAbilities
-				WHERE CustomerGUID = @CustomerGUID
-					AND CharacterID = (SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName ORDER BY C.CharacterID)
-					AND AbilityID = (SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName ORDER BY A.AbilityID)";
+		public static readonly string RemoveAbilityFromCharacter = @"
+		DELETE FROM CharHasAbilities
+		WHERE CustomerGUID = @CustomerGUID
+		  AND CharacterID = (SELECT C.CharacterID 
+		                      FROM CharacterData C 
+		                      WHERE C.CharacterName = @CharacterName 
+		                        AND C.CustomerGUID = @CustomerGUID 
+		                      LIMIT 1)
+		  AND AbilityID = (SELECT A.AbilityID 
+		                   FROM Abilities A 
+		                   WHERE A.AbilityName = @AbilityName 
+		                     AND A.CustomerGUID = @CustomerGUID 
+		                   LIMIT 1)";
 
-		public static readonly string RemoveCharactersFromAllInactiveInstances = @"DELETE FROM CharOnMapInstance
-                WHERE CustomerGUID = @CustomerGUID
-                AND CharacterID IN (
-                    SELECT C.CharacterID
-                      FROM Characters C
-                     INNER JOIN Users U ON U.CustomerGUID = C.CustomerGUID AND U.UserGUID = C.UserGUID
-                     WHERE U.LastAccess < DATEADD(minute, @CharacterMinutes, GETDATE()) AND C.CustomerGUID = @CustomerGUID)";
+		public static readonly string RemoveCharactersFromAllInactiveInstances = @"
+		DELETE FROM CharOnMapInstance
+		WHERE CustomerGUID = @CustomerGUID
+		  AND CharacterID IN (
+		    SELECT C.CharacterID
+		    FROM CharacterData C
+		    INNER JOIN AccountData U ON U.CustomerGUID = C.CustomerGUID 
+		                               AND U.AccountID = C.AccountID
+		    WHERE U.LastAccess < CURRENT_TIMESTAMP - INTERVAL '@CharacterMinutes minute' 
+		      AND C.CustomerGUID = @CustomerGUID
+		  )";
 
-		public static readonly string UpdateAbilityOnCharacter = @"UPDATE CharHasAbilities
-				SET AbilityLevel = @AbilityLevel,
-				CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
-				WHERE CustomerGUID = @CustomerGUID
-					AND CharacterID = (SELECT TOP 1 C.CharacterID FROM Characters C WHERE C.CharName = @CharacterName ORDER BY C.CharacterID)
-					AND AbilityID = (SELECT TOP 1 A.AbilityID FROM Abilities A WHERE A.AbilityName = @AbilityName ORDER BY A.AbilityID)";
+		public static readonly string UpdateAbilityOnCharacter = @"
+		UPDATE CharHasAbilities
+		SET AbilityLevel = @AbilityLevel,
+		    CharHasAbilitiesCustomJSON = @CharHasAbilitiesCustomJSON
+		WHERE CustomerGUID = @CustomerGUID
+		  AND CharacterID = (
+		      SELECT C.CharacterID
+		      FROM CharacterData C
+		      WHERE C.CharacterName = @CharacterName 
+		        AND C.CustomerGUID = @CustomerGUID
+		      ORDER BY C.CharacterID
+		      LIMIT 1
+		  )
+		  AND AbilityID = (
+		      SELECT A.AbilityID
+		      FROM Abilities A
+		      WHERE A.AbilityName = @AbilityName 
+		        AND A.CustomerGUID = @CustomerGUID
+		      ORDER BY A.AbilityID
+		      LIMIT 1
+		  )";
 
 		#endregion
 
 		#region User Queries
 
-		public static readonly string UpdateUserLastAccess = @"UPDATE Users
-				SET LastAccess = GETDATE()
-                WHERE CustomerGUID = @CustomerGUID
-                AND UserGUID IN (
-                    SELECT C.UserGUID
-                      FROM Characters C
-                      WHERE C.CustomerGUID = @CustomerGUID AND C.CharName = @CharName)";
+		public static readonly string UpdateAccountLastOnlineDate = @"
+		UPDATE AccountData
+		SET LastOnlineDate = CURRENT_TIMESTAMP
+		WHERE CustomerGUID = @CustomerGUID
+		  AND UUID IN (
+		      SELECT C.UUID
+		      FROM CharacterData C
+		      WHERE C.CustomerGUID = @CustomerGUID 
+		        AND C.CharacterName = @CharName
+		  )";
 
 		#endregion
 

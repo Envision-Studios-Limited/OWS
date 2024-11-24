@@ -88,51 +88,44 @@ CREATE TABLE AreasOfInterest
         PRIMARY KEY (CustomerGUID, AreasOfInterestGUID)
 );
 
-CREATE TABLE AccountData 
+CREATE TABLE Users
 (
-    AccountID            CHAR(36) DEFAULT (UUID()) NOT NULL,
-    CustomerGUID         CHAR(36) NOT NULL,
-    UUID                 CHAR(36) DEFAULT (UUID()) NOT NULL,
-    AccountName          VARCHAR(100) NOT NULL,
-    PasswordHash         VARCHAR(128) NOT NULL,
-    Email                VARCHAR(255) NOT NULL,
-    Discord              VARCHAR(50),
-    CreateDate           TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    TosVersion           VARCHAR(50) NOT NULL,
-    TosVersionAcceptDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    LastOnlineDate       TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    LastClientIP         VARCHAR(45),
-    Role                 VARCHAR(10) NOT NULL,
-    CONSTRAINT PK_AccountData PRIMARY KEY (AccountID),
-    CONSTRAINT AK_AccountData UNIQUE (CustomerGUID, Email, Role)
+    UserGUID     CHAR(36)                NOT NULL,
+    CustomerGUID CHAR(36)                NOT NULL,
+    FirstName    VARCHAR(50)             NOT NULL,
+    LastName     VARCHAR(50)             NOT NULL,
+    Email        VARCHAR(255)            NOT NULL,
+    PasswordHash VARCHAR(128)            NOT NULL,
+    Salt         VARCHAR(50)             NOT NULL,
+    CreateDate   TIMESTAMP DEFAULT NOW() NOT NULL,
+    LastAccess   TIMESTAMP DEFAULT NOW() NOT NULL,
+    Role         VARCHAR(10)             NOT NULL,
+    CONSTRAINT PK_Users
+        PRIMARY KEY (UserGUID),
+    CONSTRAINT AK_User
+        UNIQUE (CustomerGUID, Email, Role)
 );
 
-
-CREATE TABLE CharacterData 
+CREATE TABLE Characters
 (
     CustomerGUID              CHAR(36)                   NOT NULL,
-    AccountID                 CHAR(36)                   NULL,
-    CharacterID               INT AUTO_INCREMENT         NOT NULL,
-    CharacterName             VARCHAR(50)                NOT NULL,
+    CharacterID               INT AUTO_INCREMENT,
+    UserGUID                  CHAR(36)                   NULL,
+    Email                     VARCHAR(256)               NOT NULL,
+    CharName                  VARCHAR(50)                NOT NULL,
     MapName                   VARCHAR(50)                NULL,
     X                         FLOAT                      NOT NULL,
     Y                         FLOAT                      NOT NULL,
     Z                         FLOAT                      NOT NULL,
+    Perception                FLOAT                      NOT NULL,
+    Acrobatics                FLOAT                      NOT NULL,
+    Climb                     FLOAT                      NOT NULL,
+    Stealth                   FLOAT                      NOT NULL,
+    ServerIP                  VARCHAR(50)                NULL,
+    LastActivity              TIMESTAMP    DEFAULT NOW() NOT NULL,
     RX                        FLOAT        DEFAULT 0     NOT NULL,
     RY                        FLOAT        DEFAULT 0     NOT NULL,
     RZ                        FLOAT        DEFAULT 0     NOT NULL,
-    Fishing                   FLOAT        DEFAULT 0     NOT NULL,
-    Mining                    FLOAT        DEFAULT 0     NOT NULL,
-    Woodcutting               FLOAT        DEFAULT 0     NOT NULL,
-    Smelting                  FLOAT        DEFAULT 0     NOT NULL,
-    Smithing                  FLOAT        DEFAULT 0     NOT NULL,
-    Cooking                   FLOAT        DEFAULT 0     NOT NULL,
-    Fletching                 FLOAT        DEFAULT 0     NOT NULL,
-    Tailoring                 FLOAT        DEFAULT 0     NOT NULL,
-    Hunting                   FLOAT        DEFAULT 0     NOT NULL,
-    Leatherworking            FLOAT        DEFAULT 0     NOT NULL,
-    Farming                   FLOAT        DEFAULT 0     NOT NULL,
-    Herblore                  FLOAT        DEFAULT 0     NOT NULL,
     Spirit                    FLOAT        DEFAULT 0     NOT NULL,
     Magic                     FLOAT        DEFAULT 0     NOT NULL,
     TeamNumber                INT          DEFAULT 0     NOT NULL,
@@ -198,7 +191,7 @@ CREATE TABLE CharacterData
     MagicArmor                FLOAT        DEFAULT 0     NOT NULL,
     Resistance                FLOAT        DEFAULT 0     NOT NULL,
     ReloadSpeed               FLOAT        DEFAULT 0     NOT NULL,
-    Range                     FLOAT        DEFAULT 0     NOT NULL,
+    `Range`                   FLOAT        DEFAULT 0     NOT NULL,
     Speed                     FLOAT        DEFAULT 0     NOT NULL,
     Silver                    INT          DEFAULT 0     NOT NULL,
     Copper                    INT          DEFAULT 0     NOT NULL,
@@ -206,8 +199,6 @@ CREATE TABLE CharacterData
     PremiumCurrency           INT          DEFAULT 0     NOT NULL,
     Fame                      FLOAT        DEFAULT 0     NOT NULL,
     Alignment                 FLOAT        DEFAULT 0     NOT NULL,
-    ServerIP                  VARCHAR(50)                NULL,
-    LastActivity              TIMESTAMP    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     Description               TEXT                       NULL,
     DefaultPawnClassPath      VARCHAR(200) DEFAULT ''    NOT NULL,
     IsInternalNetworkTestUser BOOLEAN      DEFAULT FALSE NOT NULL,
@@ -215,9 +206,11 @@ CREATE TABLE CharacterData
     BaseMesh                  VARCHAR(100)               NULL,
     IsAdmin                   BOOLEAN      DEFAULT FALSE NOT NULL,
     IsModerator               BOOLEAN      DEFAULT FALSE NOT NULL,
-    CreateDate                TIMESTAMP    DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT PK_Chars PRIMARY KEY (CustomerGUID, CharacterID),
-    CONSTRAINT FK_Characters_AccountID FOREIGN KEY (AccountID) REFERENCES AccountData (AccountID)
+    CreateDate                TIMESTAMP    DEFAULT NOW() NOT NULL,
+    CONSTRAINT PK_Chars
+        PRIMARY KEY (CharacterID, CustomerGUID),
+    CONSTRAINT FK_Characters_UserGUID
+        FOREIGN KEY (UserGUID) REFERENCES Users (UserGUID)
 );
 
 
@@ -325,13 +318,13 @@ CREATE TABLE ChatGroups
         PRIMARY KEY (ChatGroupID, CustomerGUID)
 );
 
-CREATE TABLE ChatGroupAccountData 
+CREATE TABLE ChatGroupUsers
 (
     CustomerGUID CHAR(36) NOT NULL,
     ChatGroupID  INT      NOT NULL,
     CharacterID  INT      NOT NULL,
-    CONSTRAINT PK_ChatGroupAccountData
-      PRIMARY KEY (CustomerGUID, ChatGroupID, CharacterID)
+    CONSTRAINT PK_ChatGroupUsers
+        PRIMARY KEY (ChatGroupID, CharacterID, CustomerGUID)
 );
 
 CREATE TABLE ChatMessages
@@ -347,7 +340,9 @@ CREATE TABLE ChatMessages
         PRIMARY KEY (ChatMessageID, CustomerGUID)
 );
 
-CREATE TABLE Class 
+
+
+CREATE TABLE Class
 (
     CustomerGUID       CHAR(36)               NOT NULL,
     ClassID            INT AUTO_INCREMENT,
@@ -356,99 +351,90 @@ CREATE TABLE Class
     X                  FLOAT                  NOT NULL,
     Y                  FLOAT                  NOT NULL,
     Z                  FLOAT                  NOT NULL,
-    RX                 FLOAT      DEFAULT 0   NOT NULL,
-    RY                 FLOAT      DEFAULT 0   NOT NULL,
-    RZ                 FLOAT      DEFAULT 0   NOT NULL,
-    Fishing            FLOAT      DEFAULT 0   NOT NULL,
-    Mining             FLOAT      DEFAULT 0   NOT NULL,
-    Woodcutting        FLOAT      DEFAULT 0   NOT NULL,
-    Smelting           FLOAT      DEFAULT 0   NOT NULL,
-    Smithing           FLOAT      DEFAULT 0   NOT NULL,
-    Cooking            FLOAT      DEFAULT 0   NOT NULL,
-    Fletching          FLOAT      DEFAULT 0   NOT NULL,
-    Tailoring          FLOAT      DEFAULT 0   NOT NULL,
-    Hunting            FLOAT      DEFAULT 0   NOT NULL,
-    Leatherworking     FLOAT      DEFAULT 0   NOT NULL,
-    Farming            FLOAT      DEFAULT 0   NOT NULL,
-    Herblore           FLOAT      DEFAULT 0   NOT NULL,
-    Spirit             FLOAT      DEFAULT 0   NOT NULL,
-    Magic              FLOAT      DEFAULT 0   NOT NULL,
-    TeamNumber         INT        DEFAULT 0   NOT NULL,
-    Thirst             FLOAT      DEFAULT 0   NOT NULL,
-    Hunger             FLOAT      DEFAULT 0   NOT NULL,
-    Gold               INT        DEFAULT 0   NOT NULL,
-    Score              INT        DEFAULT 0   NOT NULL,
-    CharacterLevel     SMALLINT   DEFAULT 0   NOT NULL,
-    Gender             SMALLINT   DEFAULT 0   NOT NULL,
-    XP                 INT        DEFAULT 0   NOT NULL,
-    HitDie             SMALLINT   DEFAULT 0   NOT NULL,
-    Wounds             FLOAT      DEFAULT 0   NOT NULL,
-    Size               SMALLINT   DEFAULT 0   NOT NULL,
-    Weight             FLOAT      DEFAULT 0   NOT NULL,
-    MaxHealth          FLOAT      DEFAULT 0   NOT NULL,
-    Health             FLOAT      DEFAULT 0   NOT NULL,
-    HealthRegenRate    FLOAT      DEFAULT 0   NOT NULL,
-    MaxMana            FLOAT      DEFAULT 0   NOT NULL,
-    Mana               FLOAT      DEFAULT 0   NOT NULL,
-    ManaRegenRate      FLOAT      DEFAULT 0   NOT NULL,
-    MaxEnergy          FLOAT      DEFAULT 0   NOT NULL,
-    Energy             FLOAT      DEFAULT 0   NOT NULL,
-    EnergyRegenRate    FLOAT      DEFAULT 0   NOT NULL,
-    MaxFatigue         FLOAT      DEFAULT 0   NOT NULL,
-    Fatigue            FLOAT      DEFAULT 0   NOT NULL,
-    FatigueRegenRate   FLOAT      DEFAULT 0   NOT NULL,
-    MaxStamina         FLOAT      DEFAULT 0   NOT NULL,
-    Stamina            FLOAT      DEFAULT 0   NOT NULL,
-    StaminaRegenRate   FLOAT      DEFAULT 0   NOT NULL,
-    MaxEndurance       FLOAT      DEFAULT 0   NOT NULL,
-    Endurance          FLOAT      DEFAULT 0   NOT NULL,
-    EnduranceRegenRate FLOAT      DEFAULT 0   NOT NULL,
-    Strength           FLOAT      DEFAULT 0   NOT NULL,
-    Dexterity          FLOAT      DEFAULT 0   NOT NULL,
-    Constitution       FLOAT      DEFAULT 0   NOT NULL,
-    Intellect          FLOAT      DEFAULT 0   NOT NULL,
-    Wisdom             FLOAT      DEFAULT 0   NOT NULL,
-    Charisma           FLOAT      DEFAULT 0   NOT NULL,
-    Agility            FLOAT      DEFAULT 0   NOT NULL,
-    Fortitude          FLOAT      DEFAULT 0   NOT NULL,
-    Reflex             FLOAT      DEFAULT 0   NOT NULL,
-    Willpower          FLOAT      DEFAULT 0   NOT NULL,
-    BaseAttack         FLOAT      DEFAULT 0   NOT NULL,
-    BaseAttackBonus    FLOAT      DEFAULT 0   NOT NULL,
-    AttackPower        FLOAT      DEFAULT 0   NOT NULL,
-    AttackSpeed        FLOAT      DEFAULT 0   NOT NULL,
-    CritChance         FLOAT      DEFAULT 0   NOT NULL,
-    CritMultiplier     FLOAT      DEFAULT 0   NOT NULL,
-    Haste              FLOAT      DEFAULT 0   NOT NULL,
-    SpellPower         FLOAT      DEFAULT 0   NOT NULL,
-    SpellPenetration   FLOAT      DEFAULT 0   NOT NULL,
-    Defense            FLOAT      DEFAULT 0   NOT NULL,
-    Dodge              FLOAT      DEFAULT 0   NOT NULL,
-    Parry              FLOAT      DEFAULT 0   NOT NULL,
-    Avoidance          FLOAT      DEFAULT 0   NOT NULL,
-    Versatility        FLOAT      DEFAULT 0   NOT NULL,
-    Multishot          FLOAT      DEFAULT 0   NOT NULL,
-    Initiative         FLOAT      DEFAULT 0   NOT NULL,
-    NaturalArmor       FLOAT      DEFAULT 0   NOT NULL,
-    PhysicalArmor      FLOAT      DEFAULT 0   NOT NULL,
-    BonusArmor         FLOAT      DEFAULT 0   NOT NULL,
-    ForceArmor         FLOAT      DEFAULT 0   NOT NULL,
-    MagicArmor         FLOAT      DEFAULT 0   NOT NULL,
-    Resistance         FLOAT      DEFAULT 0   NOT NULL,
-    ReloadSpeed        FLOAT      DEFAULT 0   NOT NULL,
-    `Range`            FLOAT      DEFAULT 0   NOT NULL,
-    Speed              FLOAT      DEFAULT 0   NOT NULL,
-    Silver             INT        DEFAULT 0   NOT NULL,
-    Copper             INT        DEFAULT 0   NOT NULL,
-    FreeCurrency       INT        DEFAULT 0   NOT NULL,
-    PremiumCurrency    INT        DEFAULT 0   NOT NULL,
-    Fame               FLOAT      DEFAULT 0   NOT NULL,
-    Alignment          FLOAT      DEFAULT 0   NOT NULL,
-    Description        TEXT                       NULL,
+    Perception         FLOAT                  NOT NULL,
+    Acrobatics         FLOAT                  NOT NULL,
+    Climb              FLOAT                  NOT NULL,
+    Stealth            FLOAT                  NOT NULL,
+    RX                 FLOAT                  NOT NULL,
+    RY                 FLOAT                  NOT NULL,
+    RZ                 FLOAT                  NOT NULL,
+    Spirit             FLOAT                  NOT NULL,
+    Magic              FLOAT                  NOT NULL,
+    TeamNumber         INT                    NOT NULL,
+    Thirst             FLOAT                  NOT NULL,
+    Hunger             FLOAT                  NOT NULL,
+    Gold               INT                    NOT NULL,
+    Score              INT                    NOT NULL,
+    CharacterLevel     SMALLINT               NOT NULL,
+    Gender             SMALLINT               NOT NULL,
+    XP                 INT                    NOT NULL,
+    HitDie             SMALLINT               NOT NULL,
+    Wounds             FLOAT                  NOT NULL,
+    Size               SMALLINT               NOT NULL,
+    Weight             FLOAT                  NOT NULL,
+    MaxHealth          FLOAT                  NOT NULL,
+    Health             FLOAT                  NOT NULL,
+    HealthRegenRate    FLOAT                  NOT NULL,
+    MaxMana            FLOAT                  NOT NULL,
+    Mana               FLOAT                  NOT NULL,
+    ManaRegenRate      FLOAT                  NOT NULL,
+    MaxEnergy          FLOAT                  NOT NULL,
+    Energy             FLOAT                  NOT NULL,
+    EnergyRegenRate    FLOAT                  NOT NULL,
+    MaxFatigue         FLOAT                  NOT NULL,
+    Fatigue            FLOAT                  NOT NULL,
+    FatigueRegenRate   FLOAT                  NOT NULL,
+    MaxStamina         FLOAT                  NOT NULL,
+    Stamina            FLOAT                  NOT NULL,
+    StaminaRegenRate   FLOAT                  NOT NULL,
+    MaxEndurance       FLOAT                  NOT NULL,
+    Endurance          FLOAT                  NOT NULL,
+    EnduranceRegenRate FLOAT                  NOT NULL,
+    Strength           FLOAT                  NOT NULL,
+    Dexterity          FLOAT                  NOT NULL,
+    Constitution       FLOAT                  NOT NULL,
+    Intellect          FLOAT                  NOT NULL,
+    Wisdom             FLOAT                  NOT NULL,
+    Charisma           FLOAT                  NOT NULL,
+    Agility            FLOAT                  NOT NULL,
+    Fortitude          FLOAT                  NOT NULL,
+    Reflex             FLOAT                  NOT NULL,
+    Willpower          FLOAT                  NOT NULL,
+    BaseAttack         FLOAT                  NOT NULL,
+    BaseAttackBonus    FLOAT                  NOT NULL,
+    AttackPower        FLOAT                  NOT NULL,
+    AttackSpeed        FLOAT                  NOT NULL,
+    CritChance         FLOAT                  NOT NULL,
+    CritMultiplier     FLOAT                  NOT NULL,
+    Haste              FLOAT                  NOT NULL,
+    SpellPower         FLOAT                  NOT NULL,
+    SpellPenetration   FLOAT                  NOT NULL,
+    Defense            FLOAT                  NOT NULL,
+    Dodge              FLOAT                  NOT NULL,
+    Parry              FLOAT                  NOT NULL,
+    Avoidance          FLOAT                  NOT NULL,
+    Versatility        FLOAT                  NOT NULL,
+    Multishot          FLOAT                  NOT NULL,
+    Initiative         FLOAT                  NOT NULL,
+    NaturalArmor       FLOAT                  NOT NULL,
+    PhysicalArmor      FLOAT                  NOT NULL,
+    BonusArmor         FLOAT                  NOT NULL,
+    ForceArmor         FLOAT                  NOT NULL,
+    MagicArmor         FLOAT                  NOT NULL,
+    Resistance         FLOAT                  NOT NULL,
+    ReloadSpeed        FLOAT                  NOT NULL,
+    `Range`            FLOAT                  NOT NULL,
+    Speed              FLOAT                  NOT NULL,
+    Silver             INT                    NOT NULL,
+    Copper             INT                    NOT NULL,
+    FreeCurrency       INT                    NOT NULL,
+    PremiumCurrency    INT                    NOT NULL,
+    Fame               FLOAT                  NOT NULL,
+    Alignment          FLOAT                  NOT NULL,
+    Description        TEXT                   NULL,
     CONSTRAINT PK_Class
-       PRIMARY KEY (CustomerGUID, ClassID)
+        PRIMARY KEY (ClassID, CustomerGUID)
 );
-
 
 CREATE TABLE ClassInventory
 (
@@ -617,31 +603,29 @@ CREATE TABLE Races
         PRIMARY KEY (RaceID, CustomerGUID)
 );
 
-CREATE TABLE AccountSessions 
+CREATE TABLE UserSessions
 (
-    CustomerGUID          CHAR(36)                NOT NULL,
-    AccountSessionGUID    CHAR(36) DEFAULT (UUID()) NOT NULL,
-    AccountID             CHAR(36)                NOT NULL,
-    LoginDate             TIMESTAMP               NOT NULL,
-    SelectedCharacterName VARCHAR(50)            NULL,
-    CONSTRAINT PK_AccountSessions
-     PRIMARY KEY (CustomerGUID, AccountSessionGUID),
-    CONSTRAINT FK_AccountSessions_AccountID
-     FOREIGN KEY (AccountID) REFERENCES AccountData (AccountID)
+    CustomerGUID          CHAR(36)    NOT NULL,
+    UserSessionGUID       CHAR(36)    NOT NULL,
+    UserGUID              CHAR(36)    NOT NULL,
+    LoginDate             TIMESTAMP   NOT NULL,
+    SelectedCharacterName VARCHAR(50) NULL,
+    CONSTRAINT PK_UserSessions
+        PRIMARY KEY (UserSessionGUID, CustomerGUID),
+    CONSTRAINT FK_UserSessions_UserGUID
+        FOREIGN KEY (UserGUID) REFERENCES Users (UserGUID)
 );
 
-
-CREATE TABLE AccountDataInQueue 
+CREATE TABLE UsersInQueue
 (
     CustomerGUID     CHAR(36)      NOT NULL,
-    AccountID        CHAR(36)      NOT NULL,
+    UserGUID         CHAR(36)      NOT NULL,
     QueueName        VARCHAR(20)   NOT NULL,
     JoinDT           TIMESTAMP     NOT NULL,
     MatchMakingScore INT DEFAULT 0 NOT NULL,
-    CONSTRAINT PK_AccountDataInQueue
-        PRIMARY KEY (CustomerGUID, AccountID, QueueName)
+    CONSTRAINT PK_UsersInQueue
+        PRIMARY KEY (UserGUID, QueueName, CustomerGUID)
 );
-
 
 CREATE TABLE WorldServers
 (
@@ -1027,24 +1011,23 @@ BEGIN
     DROP TEMPORARY TABLE IF EXISTS tmp_GetPointsOnVisionLine;
 END;
 
-
-CREATE PROCEDURE AddCharacter(
-    IN _CustomerGUID CHAR(36),
-    IN _UserSessionGUID CHAR(36),
-    IN _CharacterName VARCHAR(50),
-    IN _ClassName VARCHAR(50)
-)
+CREATE OR REPLACE PROCEDURE AddCharacter(_CustomerGUID CHAR(36),
+                                         _UserSessionGUID CHAR(36),
+                                         _CharacterName VARCHAR(50),
+                                         _ClassName VARCHAR(50))
 BEGIN
-    DECLARE _ErrorRaised BOOLEAN DEFAULT FALSE;
+    DECLARE _ErrorRaised, _SupportUnicode BOOLEAN;
     DECLARE _UserGUID CHAR(36);
-    DECLARE _ClassID INT;
-    DECLARE _CharacterID INT;
-    DECLARE _CountOfCharNamesFound INT DEFAULT 0;
-    DECLARE _InvalidCharacters INT;
+    DECLARE _ClassID, _CharacterID, _CountOfCharNamesFound, _CountOfClassInventory, _InvalidCharacters INT;
 
-    -- Create a temporary table to return results
+    SET _ErrorRaised = FALSE;
+    SET _SupportUnicode = FALSE;
+    SET _CountOfCharNamesFound = 0;
+    SET _CountOfClassInventory = 0;
+
     DROP TEMPORARY TABLE IF EXISTS tmp_AddCharacter;
-    CREATE TEMPORARY TABLE tmp_AddCharacter (
+    CREATE TEMPORARY TABLE tmp_AddCharacter
+    (
         ErrorMessage    VARCHAR(100),
         CharacterName   VARCHAR(50),
         ClassName       VARCHAR(50),
@@ -1062,212 +1045,308 @@ BEGIN
         Copper          INT,
         FreeCurrency    INT,
         PremiumCurrency INT,
-        Fame            FLOAT,
-        Alignment       FLOAT,
+        Fame            INT,
+        Alignment       INT,
         Score           INT,
         Gender          INT,
         XP              INT,
         Size            INT,
-        Weight          FLOAT,
-        Fishing         FLOAT,
-        Mining          FLOAT,
-        Woodcutting     FLOAT,
-        Smelting        FLOAT,
-        Smithing        FLOAT,
-        Cooking         FLOAT,
-        Fletching       FLOAT,
-        Tailoring       FLOAT,
-        Hunting         FLOAT,
-        Leatherworking  FLOAT,
-        Farming         FLOAT,
-        Herblore        FLOAT
+        Weight          FLOAT
     ) ENGINE = MEMORY;
 
-    -- Validate session and retrieve UserGUID
-SELECT US.UserGUID
-INTO _UserGUID
-FROM UserSessions US
-WHERE US.CustomerGUID = _CustomerGUID
-  AND US.UserSessionGUID = _UserSessionGUID;
+    SELECT C.SupportUnicode INTO _SupportUnicode FROM Customers C WHERE C.CustomerGUID = _CustomerGUID;
 
-IF _UserGUID IS NULL THEN
+    SELECT US.UserGUID
+    INTO _UserGUID
+    FROM UserSessions US
+    WHERE US.CustomerGUID = _CustomerGUID
+      AND US.UserSessionGUID = _UserSessionGUID;
+
+    SELECT C.ClassID INTO _ClassID FROM Class C WHERE C.CustomerGUID = _CustomerGUID AND C.ClassName = _ClassName;
+
+    SELECT CONCAT(COUNT(*), 0)
+    INTO _CountOfCharNamesFound
+    FROM Characters C
+    WHERE C.CustomerGUID = _CustomerGUID
+      AND C.CharName = _CharacterName;
+
+    SET _CharacterName = TRIM(BOTH FROM _CharacterName);
+    SET _CharacterName = REPLACE(REPLACE(REPLACE(_CharacterName, ' ', '<>'), '><', ''), '<>', ' ');
+    SELECT _CharacterName REGEXP '[^a-zA-Z0-9 ]' INTO _InvalidCharacters;
+
+    IF _InvalidCharacters > 0 AND _SupportUnicode = FALSE THEN
         INSERT INTO tmp_AddCharacter
-        VALUES ('Invalid User Session', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        VALUES ('Character Name can only contain letters, numbers, and spaces', '', '', 0, '', 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         SET _ErrorRaised = TRUE;
-END IF;
+    END IF;
 
-    -- Validate and retrieve ClassID
+    IF _ErrorRaised = FALSE AND _UserGUID IS NULL THEN
+        INSERT INTO tmp_AddCharacter
+        VALUES ('Invalid User Session', '', '', 0, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        SET _ErrorRaised = TRUE;
+    END IF;
+
+    IF _ErrorRaised = FALSE AND _ClassID IS NULL THEN
+        INSERT INTO tmp_AddCharacter
+        VALUES ('Invalid Class Name', '', '', 0, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        SET _ErrorRaised = TRUE;
+    END IF;
+
+    IF _ErrorRaised = FALSE AND _CountOfCharNamesFound > 0 THEN
+        INSERT INTO tmp_AddCharacter
+        VALUES ('Invalid Character Name', '', '', 0, '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        SET _ErrorRaised = TRUE;
+    END IF;
+
     IF _ErrorRaised = FALSE THEN
-SELECT C.ClassID
-INTO _ClassID
-FROM Class C
-WHERE C.CustomerGUID = _CustomerGUID
-  AND C.ClassName = _ClassName;
 
-IF _ClassID IS NULL THEN
-            INSERT INTO tmp_AddCharacter
-            VALUES ('Invalid Class Name', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            SET _ErrorRaised = TRUE;
-END IF;
-END IF;
+        SELECT CONCAT(COUNT(*), 0)
+        INTO _CountOfClassInventory
+        FROM ClassInventory CI
+        WHERE CI.CustomerGUID = _CustomerGUID
+          AND CI.ClassID = _ClassID;
 
-    -- Validate character name uniqueness
-    IF _ErrorRaised = FALSE THEN
-SELECT COUNT(*)
-INTO _CountOfCharNamesFound
-FROM Characters
-WHERE CustomerGUID = _CustomerGUID
-  AND CharName = _CharacterName;
+        INSERT INTO Characters (CustomerGUID, ClassID, UserGUID, Email, CharName, MapName, X, Y, Z, Perception,
+                                Acrobatics, Climb, Stealth, ServerIP, LastActivity, RX, RY, RZ, Spirit, Magic,
+                                TeamNumber, Thirst, Hunger, Gold, Score, CharacterLevel, Gender, XP, HitDie, Wounds,
+                                Size, weight, MaxHealth, Health, HealthRegenRate, MaxMana, Mana, ManaRegenRate,
+                                MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate, MaxStamina,
+                                Stamina, StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength,
+                                Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility, Fortitude, Reflex,
+                                Willpower, BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed, CritChance,
+                                CritMultiplier, Haste, SpellPower, SpellPenetration, Defense, Dodge, Parry, Avoidance,
+                                Versatility, Multishot, Initiative, NaturalArmor, PhysicalArmor, BonusArmor, ForceArmor,
+                                MagicArmor, Resistance, ReloadSpeed, `Range`, Speed, Silver, Copper, FreeCurrency,
+                                PremiumCurrency, Fame, Alignment, Description)
+        SELECT _CustomerGUID,
+               _ClassID,
+               _UserGUID,
+               '',
+               _CharacterName,
+               CL.StartingMapName,
+               CL.X,
+               CL.Y,
+               CL.Z,
+               CL.Perception,
+               CL.Acrobatics,
+               CL.Climb,
+               CL.Stealth,
+               '',
+               NOW(),
+               CL.RX,
+               CL.RY,
+               CL.RZ,
+               CL.Spirit,
+               CL.Magic,
+               CL.TeamNumber,
+               CL.Thirst,
+               CL.Hunger,
+               CL.Gold,
+               CL.Score,
+               CL.CharacterLevel,
+               CL.Gender,
+               CL.XP,
+               CL.HitDie,
+               CL.Wounds,
+               CL.Size,
+               CL.Weight,
+               CL.MaxHealth,
+               CL.Health,
+               CL.HealthRegenRate,
+               CL.MaxMana,
+               CL.Mana,
+               CL.ManaRegenRate,
+               CL.MaxEnergy,
+               CL.Energy,
+               CL.EnergyRegenRate,
+               CL.MaxFatigue,
+               CL.Fatigue,
+               CL.FatigueRegenRate,
+               CL.MaxStamina,
+               CL.Stamina,
+               CL.StaminaRegenRate,
+               CL.MaxEndurance,
+               CL.Endurance,
+               CL.EnduranceRegenRate,
+               CL.Strength,
+               CL.Dexterity,
+               CL.Constitution,
+               CL.Intellect,
+               CL.Wisdom,
+               CL.Charisma,
+               CL.Agility,
+               CL.Fortitude,
+               CL.Reflex,
+               CL.Willpower,
+               CL.BaseAttack,
+               CL.BaseAttackBonus,
+               CL.AttackPower,
+               CL.AttackSpeed,
+               CL.CritChance,
+               CL.CritMultiplier,
+               CL.Haste,
+               CL.SpellPower,
+               CL.SpellPenetration,
+               CL.Defense,
+               CL.Dodge,
+               CL.Parry,
+               CL.Avoidance,
+               CL.Versatility,
+               CL.Multishot,
+               CL.Initiative,
+               CL.NaturalArmor,
+               CL.PhysicalArmor,
+               CL.BonusArmor,
+               CL.ForceArmor,
+               CL.MagicArmor,
+               CL.Resistance,
+               CL.ReloadSpeed,
+               CL.Range,
+               CL.Speed,
+               CL.Silver,
+               CL.Copper,
+               CL.FreeCurrency,
+               CL.PremiumCurrency,
+               CL.Fame,
+               CL.Alignment,
+               CL.Description
+        FROM Class CL
+        WHERE CL.ClassID = _ClassID
+          AND CL.CustomerGUID = _CustomerGUID;
 
-IF _CountOfCharNamesFound > 0 THEN
-            INSERT INTO tmp_AddCharacter
-            VALUES ('Character Name Already Exists', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            SET _ErrorRaised = TRUE;
-END IF;
-END IF;
+        SET _CharacterID = LAST_INSERT_ID();
 
-    -- Insert character if no errors
-    IF _ErrorRaised = FALSE THEN
-        INSERT INTO Characters (
-            CustomerGUID, UserGUID, ClassID, CharName, MapName, X, Y, Z, RX, RY, RZ,
-            TeamNumber, Gold, Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Score, Gender, XP, Size,
-            Weight, Fishing, Mining, Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring, Hunting,
-            Leatherworking, Farming, Herblore
-        )
-SELECT _CustomerGUID, _UserGUID, _ClassID, _CharacterName, StartingMapName, X, Y, Z, RX, RY, RZ,
-       TeamNumber, Gold, Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Score, Gender, XP, Size,
-    Weight, Fishing, Mining, Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring, Hunting,
-    Leatherworking, Farming, Herblore
-FROM Class
-WHERE ClassID = _ClassID
-  AND CustomerGUID = _CustomerGUID;
+        INSERT INTO tmp_AddCharacter (CharacterName, ClassName, CharacterLevel, StartingMapName, X, Y, Z, RX, RY, RZ,
+                                      TeamNumber, Gold, Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment,
+                                      Score,
+                                      Gender, XP, Size, Weight)
+        SELECT _CharacterName,
+               _ClassName,
+               C.CharacterLevel,
+               C.MapName,
+               C.X,
+               C.Y,
+               C.Z,
+               C.RX,
+               C.RY,
+               C.RZ,
+               C.TeamNumber,
+               C.Gold,
+               C.Silver,
+               C.Copper,
+               C.FreeCurrency,
+               C.PremiumCurrency,
+               C.Fame,
+               C.Alignment,
+               C.Score,
+               C.Gender,
+               C.XP,
+               C.Size,
+               C.Weight
+        FROM Characters C
+        WHERE C.CharacterID = _CharacterID;
 
-SET _CharacterID = LAST_INSERT_ID();
+        IF _CountOfClassInventory < 1 THEN
+            INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize, InventoryWidth,
+                                       InventoryHeight)
+            VALUES (_CustomerGUID, _CharacterID, 'Bag', 16, 4, 4);
+        ELSE
+            INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize, InventoryWidth,
+                                       InventoryHeight)
+            SELECT _CustomerGUID,
+                   _CharacterID,
+                   CI.InventoryName,
+                   CI.InventorySize,
+                   CI.InventoryWidth,
+                   CI.InventoryHeight
+            FROM ClassInventory CI
+            WHERE CI.CustomerGUID = _CustomerGUID
+              AND CI.ClassID = _ClassID;
+        END IF;
+    END IF;
 
-        -- Return the inserted character
-INSERT INTO tmp_AddCharacter
-SELECT
-    NULL AS ErrorMessage, _CharacterName, _ClassName, CharacterLevel, StartingMapName, X, Y, Z, RX, RY, RZ,
-    TeamNumber, Gold, Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Score, Gender, XP, Size,
-    Weight, Fishing, Mining, Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring, Hunting,
-    Leatherworking, Farming, Herblore
-FROM Characters
-WHERE CharacterID = _CharacterID;
-END IF;
+    SELECT * FROM tmp_AddCharacter;
+    DROP TEMPORARY TABLE IF EXISTS tmp_AddCharacter;
+END;
 
-    -- Return results
-SELECT * FROM tmp_AddCharacter;
-DROP TEMPORARY TABLE tmp_AddCharacter;
-END$$
-
-CREATE PROCEDURE AddCharacterToMapInstanceByCharName(
-    IN _CustomerGUID CHAR(36),
-    IN _CharacterName VARCHAR(50),
-    IN _MapInstanceID INT
-)
+CREATE OR REPLACE PROCEDURE AddCharacterToMapInstanceByCharName(_CustomerGUID CHAR(36),
+                                                                _CharacterName VARCHAR(50),
+                                                                _MapInstanceID INT)
 BEGIN
     DECLARE _CharacterID INT;
     DECLARE _ZoneName VARCHAR(50);
 
-    -- Log the start of the procedure
-INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (NOW(), 'AddCharacterToMapInstanceByCharName: Started', _CustomerGUID);
+    INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
+    VALUES (NOW(), 'AddCharacterToMapInstanceByCharName: Started', _CustomerGUID);
 
--- Get the CharacterID for the provided CharacterName and CustomerGUID
-SELECT CharacterID
-INTO _CharacterID
-FROM CharacterData C
-WHERE C.CharacterName = _CharacterName
-  AND C.CustomerGUID = _CustomerGUID;
+    SELECT CharacterID
+    INTO _CharacterID
+    FROM Characters C
+    WHERE C.CharName = _CharacterName
+      AND C.CustomerGUID = _CustomerGUID;
 
--- Proceed only if a valid CharacterID is found
-IF COALESCE(_CharacterID, 0) > 0 THEN
-        -- Remove the character from any existing map instances
-DELETE FROM CharOnMapInstance
-WHERE CharacterID = _CharacterID
-  AND CustomerGUID = _CustomerGUID;
 
--- Log the addition of the character to the new map instance
-INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (NOW(),
-        CONCAT('AddCharacterToMapInstanceByCharName: CustomerGUID=', _CustomerGUID, ', MapInstanceID=', _MapInstanceID, ', CharacterID=', _CharacterID),
-        _CustomerGUID);
+    IF (COALESCE(_CharacterID, 0) > 0) THEN
 
--- Add the character to the new map instance
-INSERT INTO CharOnMapInstance (CustomerGUID, MapInstanceID, CharacterID)
-VALUES (_CustomerGUID, _MapInstanceID, _CharacterID);
+        DELETE FROM CharOnMapInstance WHERE CharacterID = _CharacterID AND CustomerGUID = _CustomerGUID;
 
--- Retrieve the ZoneName associated with the provided MapInstanceID
-SELECT M.ZoneName
-INTO _ZoneName
-FROM Maps M
-         INNER JOIN MapInstances MI
-                    ON MI.CustomerGUID = M.CustomerGUID AND MI.MapID = M.MapID
-WHERE MI.MapInstanceID = _MapInstanceID;
-
--- Update the character's MapName to reflect the new zone
-UPDATE CharacterData
-SET MapName = _ZoneName
-WHERE CharacterID = _CharacterID
-  AND CustomerGUID = _CustomerGUID;
-ELSE
-        -- Log an error if no valid CharacterID was found
         INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-        VALUES (NOW(), CONCAT('AddCharacterToMapInstanceByCharName: Character not found - ', _CharacterName), _CustomerGUID);
-END IF;
-END$$
+        VALUES (NOW(), CONCAT('AddCharacterToMapInstanceByCharName: ', CAST(_CustomerGUID AS CHAR), ' - ',
+                              CAST(_MapInstanceID AS CHAR), ' - ', CAST(_CharacterID AS CHAR)), _CustomerGUID);
 
-CREATE PROCEDURE AddOrUpdateCustomCharData(
-    IN _CustomerGUID CHAR(36),
-    IN _CharacterName VARCHAR(50),
-    IN _CustomFieldName VARCHAR(50),
-    IN _FieldValue TEXT
-)
+        INSERT INTO CharOnMapInstance (CustomerGUID, MapInstanceID, CharacterID)
+        VALUES (_CustomerGUID, _MapInstanceID, _CharacterID);
+
+        SELECT ZoneName
+        INTO _ZoneName
+        FROM Maps M
+                 INNER JOIN MapInstances MI ON MI.CustomerGUID = M.CustomerGUID AND MI.MapID = M.MapID
+        WHERE MI.MapInstanceID = _MapInstanceID;
+
+        UPDATE Characters SET MapName = _ZoneName WHERE CharacterID = _CharacterID AND CustomerGUID = _CustomerGUID;
+    END IF;
+END;
+
+CREATE OR REPLACE PROCEDURE AddOrUpdateCustomCharData(_CustomerGUID CHAR(36),
+                                                      _CharacterName VARCHAR(50),
+                                                      _CustomFieldName VARCHAR(50),
+                                                      _FieldValue TEXT)
 BEGIN
     DECLARE _CharacterID INT;
 
-    -- Retrieve the CharacterID for the given CharacterName and CustomerGUID
-SELECT CharacterID
-INTO _CharacterID
-FROM CharacterData C
-WHERE C.CharacterName = _CharacterName
-  AND C.CustomerGUID = _CustomerGUID;
+    SELECT CharacterID
+    INTO _CharacterID
+    FROM Characters C
+    WHERE C.CharName = _CharacterName
+      AND C.CustomerGUID = _CustomerGUID;
 
--- Log debug information
-INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (NOW(), CONCAT('AddOrUpdateCustomCharData: ', _CustomFieldName, ' Empty Field Name: ', _CharacterName, ' Empty CharName'), _CustomerGUID);
+    INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
+    VALUES (NOW(), CONCAT('AddOrUpdateCustomCharData: ', CONCAT(_CustomFieldName, 'Empty Field Name'), ': ',
+                          CONCAT(_CharacterName, 'Empty CharName')), _CustomerGUID);
 
--- Proceed if a valid CharacterID is found
-IF _CharacterID > 0 THEN
-        -- Update the existing record if it exists
-UPDATE CustomCharacterData
-SET FieldValue = _FieldValue
-WHERE CustomerGUID = _CustomerGUID
-  AND CustomFieldName = _CustomFieldName
-  AND CharacterID = _CharacterID;
+    IF _CharacterID > 0 THEN
+        -- Update if exists
+        UPDATE CustomCharacterData
+        SET FieldValue=_FieldValue
+        WHERE CustomerGUID = _CustomerGUID
+          AND CustomFieldName = _CustomFieldName
+          AND CharacterID = _CharacterID;
 
--- Insert a new record if it doesn't exist
-INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
-SELECT _CustomerGUID, _CharacterID, _CustomFieldName, _FieldValue
-    WHERE NOT EXISTS (
-            SELECT 1
-            FROM CustomCharacterData
-            WHERE CustomerGUID = _CustomerGUID
-              AND CharacterID = _CharacterID
-              AND CustomFieldName = _CustomFieldName
-        );
+        -- Insert if not exists
+        INSERT INTO CustomCharacterData (CustomerGUID, CharacterID, CustomFieldName, FieldValue)
+        SELECT _CustomerGUID, _CharacterID, _CustomFieldName, _FieldValue
+        WHERE NOT EXISTS(SELECT CustomCharacterDataID
+                         FROM CustomCharacterData
+                         WHERE CustomerGUID = _CustomerGUID
+                           AND CharacterID = _CharacterID
+                           AND CustomFieldName = _CustomFieldName);
 
--- Log debug information about FieldValue length
-INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (NOW(), CONCAT('AddOrUpdateCustomCharData: FieldValue Length = ', CHAR_LENGTH(_FieldValue)), _CustomerGUID);
-END IF;
-END$$
+        INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
+        VALUES (NOW(), CONCAT('AddOrUpdateCustomCharData: ', CAST(LENGTH(_FieldValue) AS CHAR)), _CustomerGUID);
+
+    END IF;
+END;
 
 CREATE OR REPLACE PROCEDURE AddOrUpdateMapZone(_CustomerGUID CHAR(36),
                                                _MapID INT,
@@ -1320,184 +1399,197 @@ BEGIN
                        AND (MapID = _MapID OR ZoneName = _ZoneName));
 END;
 
-CREATE OR REPLACE FUNCTION AddAccount(
-    _CustomerGUID CHAR(36),
-    _AccountName VARCHAR(100),
-    _Email VARCHAR(256),
-    _Password VARCHAR(256),
-    _TosVersion VARCHAR(50),
-    _Role VARCHAR(10),
-    _Discord VARCHAR(50) DEFAULT NULL,
-    _LastClientIP VARCHAR(45) DEFAULT NULL
-)
-RETURNS CHAR(36)
-DETERMINISTIC
-MODIFIES SQL DATA
+CREATE OR REPLACE FUNCTION AddUser(_CustomerGUID CHAR(36),
+                                   _FirstName VARCHAR(50),
+                                   _LastName VARCHAR(50),
+                                   _Email VARCHAR(256),
+                                   _Password VARCHAR(256),
+                                   _Role VARCHAR(10))
+    RETURNS CHAR(36)
+    DETERMINISTIC
+    MODIFIES SQL DATA
 BEGIN
     DECLARE _PasswordHash VARCHAR(128);
-    DECLARE _AccountID CHAR(36);
-    DECLARE _UUID CHAR(36);
     DECLARE _Salt VARCHAR(50);
+    DECLARE _UserGUID CHAR(36);
 
-    -- Generate a random salt and hash the password
     SET _Salt = SUBSTRING(MD5(RAND()), -10);
-    SET _PasswordHash = ENCRYPT(_Password, CONCAT('$1$', _Salt));
+    SET _PasswordHash = ENCRYPT(_Password, _Salt);
+    SET _UserGUID = UUID();
 
-    -- Generate new UUIDs for AccountID and UUID
-    SET _AccountID = UUID();
-    SET _UUID = UUID();
+    INSERT INTO Users (UserGUID, CustomerGUID, FirstName, LastName, Email, PasswordHash, Salt, CreateDate, LastAccess,
+                       ROLE)
+    VALUES (_UserGUID, _CustomerGUID, _FirstName, _LastName, _Email, _PasswordHash, _Salt, NOW(), NOW(), _Role);
 
-    -- Insert the new account into the AccountData table
-INSERT INTO AccountData (
-    AccountID,
-    CustomerGUID,
-    UUID,
-    AccountName,
-    PasswordHash,
-    Email,
-    Discord,
-    CreateDate,
-    TosVersion,
-    TosVersionAcceptDate,
-    LastOnlineDate,
-    LastClientIP,
-    Role
-)
-VALUES (
-           _AccountID,
-           _CustomerGUID,
-           _UUID,
-           _AccountName,
-           _PasswordHash,
-           _Email,
-           _Discord,
-           NOW(),
-           _TosVersion,
-           NOW(),
-           NOW(),
-           _LastClientIP,
-           _Role
-       );
+    RETURN _UserGUID;
+END;
 
--- Return the generated AccountID
-RETURN _AccountID;
-END$$
-
-CREATE OR REPLACE PROCEDURE AddNewCustomer(
-    _CustomerName VARCHAR(50),
-    _AccountName VARCHAR(100),
-    _Email VARCHAR(256),
-    _Password VARCHAR(256)
-)
+CREATE OR REPLACE PROCEDURE AddNewCustomer(_CustomerName VARCHAR(50),
+                                           _FirstName VARCHAR(50),
+                                           _LastName VARCHAR(50),
+                                           _Email VARCHAR(256),
+                                           _Password VARCHAR(256))
 BEGIN
-    DECLARE _CustomerGUID CHAR(36);
-    DECLARE _AccountID CHAR(36);
-    DECLARE _ClassID INT;
-    DECLARE _CharacterName VARCHAR(50) DEFAULT 'Test';
-    DECLARE _CharacterID INT;
+    DECLARE _CustomerGUID, _UserGUID CHAR(36);
+    DECLARE _CharacterID, _ClassID INT;
+    DECLARE _CharacterName VARCHAR(50);
 
-    -- Generate a new CustomerGUID
+    SET _CharacterName = 'Test';
     SET _CustomerGUID = UUID();
 
-    -- Insert into Customers
-INSERT INTO Customers (
-    CustomerGUID, CustomerName, CustomerEmail, CustomerPhone, CustomerNotes, EnableDebugLogging
-)
-VALUES (
-           _CustomerGUID, _CustomerName, _Email, '', '', TRUE
-       );
+    INSERT INTO Customers (CustomerGUID, CustomerName, CustomerEmail, CustomerPhone, CustomerNotes, EnableDebugLogging)
+    VALUES (_CustomerGUID, _CustomerName, _Email, '', '', TRUE);
 
--- Insert into WorldSettings
-INSERT INTO WorldSettings (
-    CustomerGUID, StartTime
-)
-SELECT
-    _CustomerGUID, UNIX_TIMESTAMP()
-FROM Customers
-WHERE CustomerGUID = _CustomerGUID;
+    INSERT INTO WorldSettings (CustomerGUID, StartTime)
+    SELECT _CustomerGUID, CAST(UNIX_TIMESTAMP() AS INTEGER)
+    FROM Customers C
+    WHERE C.CustomerGUID = _CustomerGUID;
 
--- Add account and retrieve AccountID
-SET _AccountID = AddAccount(
-        _CustomerGUID,
-        _AccountName,
-        _Email,
-        _Password,
-        'DefaultTosVersion',
-        'Developer'
-    );
+    SET _UserGUID = AddUser(_CustomerGUID, _FirstName, _LastName, _Email, _Password, 'Developer');
 
-    -- Insert default maps
-INSERT INTO Maps (
-    CustomerGUID, MapName, ZoneName, MapData, Width, Height
-)
-VALUES
-    (_CustomerGUID, 'NewEuropa', 'NewEuropa', NULL, 1, 1),
-    (_CustomerGUID, 'Map2', 'Map2', NULL, 1, 1),
-    (_CustomerGUID, 'DungeonMap', 'DungeonMap', NULL, 1, 1),
-    (_CustomerGUID, 'FourZoneMap', 'Zone1', NULL, 1, 1),
-    (_CustomerGUID, 'FourZoneMap', 'Zone2', NULL, 1, 1);
+    INSERT INTO Maps (CustomerGUID, MapName, ZoneName, MapData, Width, Height)
+    VALUES (_CustomerGUID, 'ThirdPersonExampleMap', 'ThirdPersonExampleMap', NULL, 1, 1);
+    INSERT INTO Maps (CustomerGUID, MapName, ZoneName, MapData, Width, Height)
+    VALUES (_CustomerGUID, 'Map2', 'Map2', NULL, 1, 1);
+    INSERT INTO Maps (CustomerGUID, MapName, ZoneName, MapData, Width, Height)
+    VALUES (_CustomerGUID, 'DungeonMap', 'DungeonMap', NULL, 1, 1);
+    INSERT INTO Maps (CustomerGUID, MapName, ZoneName, MapData, Width, Height)
+    VALUES (_CustomerGUID, 'FourZoneMap', 'Zone1', NULL, 1, 1);
+    INSERT INTO Maps (CustomerGUID, MapName, ZoneName, MapData, Width, Height)
+    VALUES (_CustomerGUID, 'FourZoneMap', 'Zone2', NULL, 1, 1);
 
--- Insert a default class
-INSERT INTO Class (
-    CustomerGUID, ClassName, StartingMapName, X, Y, Z, RX, RY, RZ,
-    Fishing, Mining, Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring, Hunting,
-    Leatherworking, Farming, Herblore, Spirit, Magic, TeamNumber, Thirst, Hunger, Gold, Score,
-    CharacterLevel, Gender, XP, HitDie, Wounds, Size, Weight, MaxHealth, Health, HealthRegenRate,
-    MaxMana, Mana, ManaRegenRate, MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate,
-    MaxStamina, Stamina, StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength,
-    Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility, Fortitude, Reflex, Willpower,
-    BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed, CritChance, CritMultiplier, Haste,
-    SpellPower, SpellPenetration, Defense, Dodge, Parry, Avoidance, Versatility, Multishot, Initiative,
-    NaturalArmor, PhysicalArmor, BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, Range, Speed,
-    Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Description
-)
-VALUES (
-           _CustomerGUID, 'MaleWarrior', 'NewEuropa', 0, 0, 250, 0, 0, 0,
-           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-           1, 1, 0, 10, 0, 1, 0, 100, 50, 1, 100, 0, 1, 100, 0, 5, 100, 0, 1,
-           0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 0, 1, 1, 1, 5, 0, 0, 0, 0,
-           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''
-       );
+    INSERT INTO Class (CustomerGUID, ClassName, StartingMapName, X, Y, Z, Perception, Acrobatics, Climb, Stealth, RX,
+                       RY, RZ, Spirit, Magic, TeamNumber, Thirst, Hunger, Gold, Score, CharacterLevel, Gender, XP,
+                       HitDie, Wounds, Size, weight, MaxHealth, Health, HealthRegenRate, MaxMana, Mana, ManaRegenRate,
+                       MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate, MaxStamina, Stamina,
+                       StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength, Dexterity, Constitution,
+                       Intellect, Wisdom, Charisma, Agility, Fortitude, Reflex, Willpower, BaseAttack, BaseAttackBonus,
+                       AttackPower, AttackSpeed, CritChance, CritMultiplier, Haste, SpellPower, SpellPenetration,
+                       Defense, Dodge, Parry, Avoidance, Versatility, Multishot, Initiative, NaturalArmor,
+                       PhysicalArmor, BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, `Range`, Speed,
+                       Silver,
+                       Copper, FreeCurrency, PremiumCurrency, Fame, ALIGNMENT, Description)
+    VALUES (_CustomerGUID, 'MaleWarrior', 'ThirdPersonExampleMap', 0, 0, 250, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+            1, 1, 0, 10, 0, 1, 0, 100, 50, 1, 100, 0, 1, 100, 0, 5, 100, 0, 1, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10,
+            0, 1, 1, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            '');
 
--- Retrieve ClassID for the inserted class
-SET _ClassID = LAST_INSERT_ID();
+    SET _ClassID = LAST_INSERT_ID();
 
-    -- Insert a character respecting CharacterData table structure
-INSERT INTO CharacterData (
-    CustomerGUID, ClassID, AccountID, CharacterName, MapName, X, Y, Z, RX, RY, RZ,
-    Fishing, Mining, Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring, Hunting,
-    Leatherworking, Farming, Herblore, Spirit, Magic, TeamNumber, Thirst, Hunger, Gold, Score,
-    CharacterLevel, Gender, XP, HitDie, Wounds, Size, Weight, MaxHealth, Health, HealthRegenRate,
-    MaxMana, Mana, ManaRegenRate, MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate,
-    MaxStamina, Stamina, StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength,
-    Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility, Fortitude, Reflex, Willpower,
-    BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed, CritChance, CritMultiplier, Haste,
-    SpellPower, SpellPenetration, Defense, Dodge, Parry, Avoidance, Versatility, Multishot, Initiative,
-    NaturalArmor, PhysicalArmor, BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, Range, Speed,
-    Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Description
-)
-SELECT
-    _CustomerGUID, _ClassID, _AccountID, _CharacterName, StartingMapName, X, Y, Z, RX, RY, RZ,
-    Fishing, Mining, Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring, Hunting,
-    Leatherworking, Farming, Herblore, Spirit, Magic, TeamNumber, Thirst, Hunger, Gold, Score,
-    CharacterLevel, Gender, XP, HitDie, Wounds, Size, Weight, MaxHealth, Health, HealthRegenRate,
-    MaxMana, Mana, ManaRegenRate, MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate,
-    MaxStamina, Stamina, StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength,
-    Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility, Fortitude, Reflex, Willpower,
-    BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed, CritChance, CritMultiplier, Haste,
-    SpellPower, SpellPenetration, Defense, Dodge, Parry, Avoidance, Versatility, Multishot, Initiative,
-    NaturalArmor, PhysicalArmor, BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, Range, Speed,
-    Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Description
-FROM Class
-WHERE ClassID = _ClassID;
+    INSERT INTO Characters (CustomerGUID, ClassID, UserGUID, Email, CharName, MapName, X, Y, Z, Perception, Acrobatics,
+                            Climb, Stealth, ServerIP, LastActivity,
+                            RX, RY, RZ, Spirit, Magic, TeamNumber, Thirst, Hunger, Gold, Score, CharacterLevel, Gender,
+                            XP, HitDie, Wounds, Size, weight, MaxHealth, Health,
+                            HealthRegenRate, MaxMana, Mana, ManaRegenRate, MaxEnergy, Energy, EnergyRegenRate,
+                            MaxFatigue, Fatigue, FatigueRegenRate, MaxStamina, Stamina,
+                            StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate, Strength, Dexterity,
+                            Constitution, Intellect, Wisdom, Charisma, Agility, Fortitude,
+                            Reflex, Willpower, BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed, CritChance,
+                            CritMultiplier, Haste, SpellPower, SpellPenetration, Defense,
+                            Dodge, Parry, Avoidance, Versatility, Multishot, Initiative, NaturalArmor, PhysicalArmor,
+                            BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed,
+                            `Range`, Speed, Silver, Copper, FreeCurrency, PremiumCurrency, Fame, ALIGNMENT, Description)
+    SELECT _CustomerGUID,
+           _ClassID,
+           _UserGUID,
+           '',
+           _CharacterName,
+           StartingMapName,
+           X,
+           Y,
+           Z,
+           Perception,
+           Acrobatics,
+           Climb,
+           Stealth,
+           '',
+           NOW(),
+           RX,
+           RY,
+           RZ,
+           Spirit,
+           Magic,
+           TeamNumber,
+           Thirst,
+           Hunger,
+           Gold,
+           Score,
+           CharacterLevel,
+           Gender,
+           XP,
+           HitDie,
+           Wounds,
+           Size,
+           weight,
+           MaxHealth,
+           Health,
+           HealthRegenRate,
+           MaxMana,
+           Mana,
+           ManaRegenRate,
+           MaxEnergy,
+           Energy,
+           EnergyRegenRate,
+           MaxFatigue,
+           Fatigue,
+           FatigueRegenRate,
+           MaxStamina,
+           Stamina,
+           StaminaRegenRate,
+           MaxEndurance,
+           Endurance,
+           EnduranceRegenRate,
+           Strength,
+           Dexterity,
+           Constitution,
+           Intellect,
+           Wisdom,
+           Charisma,
+           Agility,
+           Fortitude,
+           Reflex,
+           Willpower,
+           BaseAttack,
+           BaseAttackBonus,
+           AttackPower,
+           AttackSpeed,
+           CritChance,
+           CritMultiplier,
+           Haste,
+           SpellPower,
+           SpellPenetration,
+           Defense,
+           Dodge,
+           Parry,
+           Avoidance,
+           Versatility,
+           Multishot,
+           Initiative,
+           NaturalArmor,
+           PhysicalArmor,
+           BonusArmor,
+           ForceArmor,
+           MagicArmor,
+           Resistance,
+           ReloadSpeed,
+           `Range`,
+           Speed,
+           Silver,
+           Copper,
+           FreeCurrency,
+           PremiumCurrency,
+           Fame,
+           ALIGNMENT,
+           DESCRIPTION
+    FROM Class
+    WHERE ClassID = _ClassID;
 
--- Retrieve CharacterID for the inserted character
-SET _CharacterID = LAST_INSERT_ID();
+    SET _CharacterID = LAST_INSERT_ID();
 
-    -- Insert default inventory for the character
-INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize)
-VALUES (_CustomerGUID, _CharacterID, 'Bag', 16);
-END$$
+    INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize)
+    VALUES (_CustomerGUID, _CharacterID, 'Bag', 16);
+END;
+
 
 CREATE OR REPLACE PROCEDURE CheckMapInstanceStatus(_CustomerGUID CHAR(36),
                                                    _MapInstanceID INT)
@@ -1513,51 +1605,42 @@ BEGIN
     DECLARE _CharacterID INT;
     DECLARE _ZoneName VARCHAR(50);
 
-    -- Clean up characters on map instances based on last access time
-DELETE
-FROM CharOnMapInstance
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID IN (
-    SELECT C.CharacterID
-    FROM CharacterData C
-             INNER JOIN AccountData U
-                        ON U.CustomerGUID = C.CustomerGUID
-                            AND U.AccountID = C.AccountID
-    WHERE U.LastOnlineDate < DATE_SUB(NOW(), INTERVAL 1 MINUTE)
-      AND C.CustomerGUID = _CustomerGUID
-);
+    DELETE
+    FROM CharOnMapInstance
+    WHERE CustomerGUID = _CustomerGUID
+      AND CharacterID IN (SELECT C.CharacterID
+                          FROM Characters C
+                                   INNER JOIN Users U
+                                              ON U.CustomerGUID = C.CustomerGUID
+                                                  AND U.UserGUID = C.UserGUID
+                          WHERE U.LastAccess < DATE_SUB(NOW(), INTERVAL 1 MINUTE)
+                            AND C.CustomerGUID = _CustomerGUID);
 
--- Drop temporary table if it exists
-DROP TEMPORARY TABLE IF EXISTS tmp_CleanUp;
-
-    -- Create a temporary table
-    CREATE TEMPORARY TABLE tmp_CleanUp (
+    DROP TEMPORARY TABLE IF EXISTS tmp_CleanUp;
+    CREATE TEMPORARY TABLE tmp_CleanUp
+    (
         MapInstanceID INT
     ) ENGINE = MEMORY;
 
-    -- Insert into temporary table based on outdated map instance data
-INSERT INTO tmp_CleanUp (MapInstanceID)
-SELECT MapInstanceID
-FROM MapInstances
-WHERE LastUpdateFromServer < DATE_SUB(NOW(), INTERVAL 2 MINUTE)
-  AND CustomerGUID = _CustomerGUID;
+    INSERT INTO tmp_CleanUp (MapInstanceID)
+    SELECT MapInstanceID
+    FROM MapInstances
+    WHERE LastUpdateFromServer < DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+      AND CustomerGUID = _CustomerGUID;
 
--- Delete character associations with outdated map instances
-DELETE
-FROM CharOnMapInstance
-WHERE CustomerGUID = _CustomerGUID
-  AND MapInstanceID IN (SELECT MapInstanceID FROM tmp_CleanUp);
+    DELETE
+    FROM CharOnMapInstance
+    WHERE CustomerGUID = _CustomerGUID
+      AND MapInstanceID IN (SELECT MapInstanceID FROM tmp_CleanUp);
 
--- Delete outdated map instances
-DELETE
-FROM MapInstances
-WHERE CustomerGUID = _CustomerGUID
-  AND MapInstanceID IN (SELECT MapInstanceID FROM tmp_CleanUp);
+    DELETE
+    FROM MapInstances
+    WHERE CustomerGUID = _CustomerGUID
+      AND MapInstanceID IN (SELECT MapInstanceID FROM tmp_CleanUp);
 
--- Drop the temporary table
-DROP TEMPORARY TABLE IF EXISTS tmp_CleanUp;
+    DROP TEMPORARY TABLE IF EXISTS tmp_CleanUp;
 
-END$$
+END;
 
 CREATE OR REPLACE PROCEDURE GetAbilityBars(_CustomerGUID CHAR(36),
                                            _CharName VARCHAR(50))
@@ -1577,103 +1660,95 @@ BEGIN
       AND C.CharName = _CharName;
 END;
 
-
-CREATE OR REPLACE PROCEDURE GetAbilityBarsAndAbilities(
-    _CustomerGUID CHAR(36),
-    _CharName VARCHAR(50)
-)
+CREATE OR REPLACE PROCEDURE GetAbilityBarsAndAbilities(_CustomerGUID CHAR(36),
+                                                       _CharName VARCHAR(50))
 BEGIN
-SELECT CAB.AbilityBarName,
-       CAB.CharAbilityBarID,
-       CONCAT(CAB.CharAbilityBarsCustomJSON, '') AS CharAbilityBarsCustomJSON,
-       CAB.CharacterID,
-       CAB.CustomerGUID,
-       CAB.MaxNumberOfSlots,
-       CAB.NumberOfUnlockedSlots,
-       CHA.AbilityLevel,
-       CONCAT(CHA.CharHasAbilitiesCustomJSON, '') AS CharHasAbilitiesCustomJSON,
-       AB.AbilityID,
-       AB.AbilityName,
-       AB.AbilityTypeID,
-       AB.Class AS AbilityClass,
-       AB.Race,
-       AB.TextureToUseForIcon,
-       AB.GameplayAbilityClassName,
-       AB.AbilityCustomJSON,
-       CABA.InSlotNumber
-FROM CharAbilityBars CAB
-         INNER JOIN CharAbilityBarAbilities CABA
-                    ON CABA.CharAbilityBarID = CAB.CharAbilityBarID
-                        AND CABA.CustomerGUID = CAB.CustomerGUID
-         INNER JOIN CharHasAbilities CHA
-                    ON CHA.CharHasAbilitiesID = CABA.CharHasAbilitiesID
-                        AND CHA.CustomerGUID = CABA.CustomerGUID
-         INNER JOIN Abilities AB
-                    ON AB.AbilityID = CHA.AbilityID
-                        AND AB.CustomerGUID = CHA.CustomerGUID
-         INNER JOIN CharacterData C
-                    ON C.CharacterID = CAB.CharacterID
-                        AND C.CustomerGUID = CAB.CustomerGUID
-WHERE C.CustomerGUID = _CustomerGUID
-  AND C.CharacterName = _CharName;
-END$$
+    SELECT CAB.AbilityBarName,
+           CAB.CharAbilityBarID,
+           CONCAT(CAB.CharAbilityBarsCustomJSON, '')  AS CharAbilityBarsCustomJSON,
+           CAB.CharacterID,
+           CAB.CustomerGUID,
+           CAB.MaxNumberOfSlots,
+           CAB.NumberOfUnlockedSlots,
+           CHA.AbilityLevel,
+           CONCAT(CHA.CharHasAbilitiesCustomJSON, '') AS CharHasAbilitiesCustomJSON,
+           AB.AbilityID,
+           AB.AbilityName,
+           AB.AbilityTypeID,
+           AB.Class,
+           AB.Race,
+           AB.TextureToUseForIcon,
+           AB.GameplayAbilityClassName,
+           AB.AbilityCustomJSON,
+           CABA.InSlotNumber
+    FROM CharAbilityBars CAB
+             INNER JOIN CharAbilityBarAbilities CABA
+                        ON CABA.CharAbilityBarID = CAB.CharAbilityBarID
+                            AND CABA.CustomerGUID = CAB.CustomerGUID
+             INNER JOIN CharHasAbilities CHA
+                        ON CHA.CharHasAbilitiesID = CABA.CharHasAbilitiesID
+                            AND CHA.CustomerGUID = CABA.CustomerGUID
+             INNER JOIN Abilities AB
+                        ON AB.AbilityID = CHA.AbilityID
+                            AND AB.CustomerGUID = CHA.CustomerGUID
+             INNER JOIN Characters C
+                        ON C.CharacterID = CAB.CharacterID
+                            AND C.CustomerGUID = CAB.CustomerGUID
+    WHERE C.CustomerGUID = _CustomerGUID
+      AND C.CharName = _CharName;
+END;
 
-CREATE OR REPLACE PROCEDURE GetAllCharacters(
-    _CustomerGUID CHAR(36),
-    _UserSessionGUID CHAR(36)
-)
+CREATE OR REPLACE PROCEDURE GetAllCharacters(_CustomerGUID CHAR(36),
+                                             _UserSessionGUID CHAR(36))
 BEGIN
-SELECT C.*,
-       DATE_FORMAT(C.LastActivity, '%b %d %Y %h:%i%p') AS LastActivityString,
-       DATE_FORMAT(C.CreateDate, '%b %d %Y %h:%i%p')   AS CreateDateString,
-       CL.ClassName
-FROM CharacterData C
-         INNER JOIN Class CL
-                    ON CL.ClassID = C.ClassID
-         INNER JOIN AccountData U
-                    ON U.AccountID = C.AccountID
-         INNER JOIN AccountSessions US
-                    ON US.AccountID = U.AccountID
-WHERE C.CustomerGUID = _CustomerGUID
-  AND US.AccountSessionGUID = _UserSessionGUID;
-END$$
+    SELECT C.*,
+           DATE_FORMAT('%b %d %Y %h:%i%p', C.LastActivity) AS LastActivityString,
+           DATE_FORMAT('%b %d %Y %h:%i%p', C.CreateDate)   AS CreateDateString,
+           CL.ClassName
+    FROM Characters C
+             INNER JOIN Class CL
+                        ON CL.ClassID = C.ClassID
+             INNER JOIN Users U
+                        ON U.UserGUID = C.UserGUID
+             INNER JOIN UserSessions US
+                        ON US.UserGUID = U.UserGUID
+    WHERE C.CustomerGUID = _CustomerGUID
+      AND US.UserSessionGUID = _UserSessionGUID;
+END;
 
-CREATE OR REPLACE PROCEDURE GetCharacterAbilities(
-    _CustomerGUID CHAR(36),
-    _CharName VARCHAR(50)
-)
+CREATE OR REPLACE PROCEDURE GetCharacterAbilities(_CustomerGUID CHAR(36),
+                                                  _CharName VARCHAR(50))
 BEGIN
-SELECT
-    A.AbilityID,
-    A.AbilityCustomJSON,
-    A.AbilityName,
-    A.AbilityTypeID,
-    A.Class,
-    A.CustomerGUID,
-    A.Race,
-    A.TextureToUseForIcon,
-    A.GameplayAbilityClassName,
-    CHA.CharHasAbilitiesID,
-    CHA.AbilityLevel,
-    CHA.CharHasAbilitiesCustomJSON,
-    C.CharacterID,
-    C.CharacterName
-FROM CharHasAbilities CHA
-         INNER JOIN Abilities A
-                    ON A.AbilityID = CHA.AbilityID
-                        AND A.CustomerGUID = CHA.CustomerGUID
-         INNER JOIN CharacterData C
-                    ON C.CharacterID = CHA.CharacterID
-                        AND C.CustomerGUID = CHA.CustomerGUID
-WHERE C.CustomerGUID = _CustomerGUID
-  AND C.CharacterName = _CharName;
-END$$
+    SELECT A.AbilityID,
+           A.AbilityCustomJSON,
+           A.AbilityName,
+           A.AbilityTypeID,
+           A.Class,
+           A.CustomerGUID,
+           A.Race,
+           A.TextureToUseForIcon,
+           A.GameplayAbilityClassName,
+           CHA.CharHasAbilitiesID,
+           CHA.AbilityLevel,
+           CHA.CharHasAbilitiesCustomJSON,
+           C.CharacterID,
+           C.CharName
+    FROM CharHasAbilities CHA
+             INNER JOIN Abilities A
+                        ON A.AbilityID = CHA.AbilityID
+                            AND A.CustomerGUID = CHA.CustomerGUID
+             INNER JOIN Characters C
+                        ON C.CharacterID = CHA.CharacterID
+                            AND C.CustomerGUID = CHA.CustomerGUID
+    WHERE C.CustomerGUID = _CustomerGUID
+      AND C.CharName = _CharName;
+END;
 
 CREATE OR REPLACE PROCEDURE GetCharByCharName(_CustomerGUID CHAR(36),
                                               _CharName VARCHAR(50))
 BEGIN
     SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, CL.ClassName, CU.EnableAutoLoopBack
-    FROM CharacterData C
+    FROM Characters C
              INNER JOIN Class CL
                         ON CL.ClassID = C.ClassID
              INNER JOIN Customers CU
@@ -1685,7 +1760,7 @@ BEGIN
              LEFT JOIN WorldServers WS
                        ON WS.WorldServerID = MI.WorldServerID
     WHERE C.CustomerGUID = _CustomerGUID
-      AND C.CharacterName = _CharName
+      AND C.CharName = _CharName
     ORDER BY MI.MapInstanceID DESC
     LIMIT 1;
 END;
@@ -1694,12 +1769,12 @@ CREATE OR REPLACE PROCEDURE GetCustomCharData(_CustomerGUID CHAR(36),
                                               _CharName VARCHAR(50))
 BEGIN
     SELECT CCD.*
-    FROM CharacterData C
+    FROM Characters C
              INNER JOIN CustomCharacterData CCD
                         ON CCD.CharacterID = C.CharacterID
                             AND CCD.CustomerGUID = C.CustomerGUID
     WHERE C.CustomerGUID = _CustomerGUID
-      AND C.CharacterName = _CharName;
+      AND C.CharName = _CharName;
 END;
 
 CREATE OR REPLACE PROCEDURE GetMapInstancesForWorldServerID(_CustomerGUID CHAR(36),
@@ -1737,14 +1812,14 @@ BEGIN
              INNER JOIN PlayerGroup PG
                         ON PG.PlayerGroupID = PGC.PlayerGroupID
                             AND PG.CustomerGUID = PGC.CustomerGUID
-             INNER JOIN CharacterData C
+             INNER JOIN Characters C
                         ON C.CharacterID = PGC.CharacterID
-             INNER JOIN AccountSessions US
-                        ON US.AccountID = C.AccountID
+             INNER JOIN UserSessions US
+                        ON US.UserGUID = C.UserGUID
                             AND US.CustomerGUID = C.CustomerGUID
     WHERE PGC.CustomerGUID = _CustomerGUID
       AND (PG.PlayerGroupTypeID = _PlayerGroupTypeID OR COALESCE(_PlayerGroupTypeID, 0) = 0)
-      AND C.CharacterName = _CharName
+      AND C.CharName = _CharName
       AND C.CustomerGUID = _CustomerGUID;
 END;
 
@@ -1775,52 +1850,48 @@ BEGIN
       AND MI.Port = _Port;
 END;
 
-CREATE OR REPLACE PROCEDURE GetAccount(
-    _CustomerGUID CHAR(36),
-    _AccountID CHAR(36)
-)
+CREATE OR REPLACE PROCEDURE GetUser(_CustomerGUID CHAR(36),
+                                    _UserGUID CHAR(36))
 BEGIN
-SELECT *
-FROM AccountData A
-WHERE A.CustomerGUID = _CustomerGUID
-  AND A.AccountID = _AccountID;
-END$$
+    SELECT *
+    FROM Users U
+    WHERE U.CustomerGUID = _CustomerGUID
+      AND U.UserGUID = _UserGUID;
+END;
 
-
-CREATE OR REPLACE PROCEDURE GetAccountSession(
-    _CustomerGUID CHAR(36),
-    _AccountSessionGUID CHAR(36)
-)
+CREATE OR REPLACE PROCEDURE GetUserSession(_CustomerGUID CHAR(36),
+                                           _UserSessionGUID CHAR(36))
 BEGIN
-SELECT US.CustomerGUID,
-       US.AccountID,
-       US.AccountSessionGUID,
-       US.LoginDate,
-       US.SelectedCharacterName,
-       A.Email,
-       A.AccountName,
-       A.CreateDate,
-       A.LastOnlineDate,
-       A.Role,
-       C.CharacterID,
-       C.CharacterName AS CharName,
-       C.X,
-       C.Y,
-       C.Z,
-       C.RX,
-       C.RY,
-       C.RZ,
-       C.MapName AS ZoneName
-FROM AccountSessions US
-         INNER JOIN AccountData A
-                    ON A.AccountID = US.AccountID
-         LEFT JOIN CharacterData C
-                   ON C.CustomerGUID = US.CustomerGUID
-                       AND C.CharacterName = US.SelectedCharacterName
-                       AND C.AccountID = US.AccountID
-WHERE US.CustomerGUID = _CustomerGUID
-  AND US.AccountSessionGUID = _AccountSessionGUID;
-END$$
+    SELECT US.CustomerGUID,
+           US.UserGUID,
+           US.UserSessionGUID,
+           US.LoginDate,
+           US.SelectedCharacterName,
+           U.Email,
+           U.FirstName,
+           U.LastName,
+           U.CreateDate,
+           U.LastAccess,
+           U.Role,
+           C.CharacterID,
+           C.CharName,
+           C.X,
+           C.Y,
+           C.Z,
+           C.RX,
+           C.RY,
+           C.RZ,
+           C.MapName AS ZoneName
+    FROM UserSessions US
+             INNER JOIN Users U
+                        ON U.UserGUID = US.UserGUID
+             LEFT JOIN Characters C
+                       ON C.CustomerGUID = US.CustomerGUID
+                           AND C.CharName = US.SelectedCharacterName
+                           AND C.UserGUID = US.UserGUID
+    WHERE US.CustomerGUID = _CustomerGUID
+      AND US.UserSessionGUID = _UserSessionGUID;
+END;
 
 CREATE OR REPLACE PROCEDURE GetWorldStartTime(_CustomerGUID CHAR(36))
 BEGIN
@@ -1982,8 +2053,8 @@ BEGIN
 
     SELECT C.CharacterID, C.IsInternalNetworkTestUser, C.Email
     INTO _CharacterID, _IsInternalNetworkTestUser, _Email
-    FROM CharacterData C
-    WHERE C.CharacterName = _CharName
+    FROM Characters C
+    WHERE C.CharName = _CharName
       AND C.CustomerGUID = _CustomerGUID;
 
     IF (_CharacterID IS NULL) THEN
@@ -2102,165 +2173,114 @@ BEGIN
     SELECT * FROM tmp_JoinMapByCharName;
 END;
 
-CREATE OR REPLACE PROCEDURE PlayerLoginAndCreateSession(
-    _CustomerGUID CHAR(36),
-    _Email VARCHAR(256),
-    _Password VARCHAR(256),
-    _DontCheckPassword BOOLEAN
-)
+CREATE OR REPLACE PROCEDURE PlayerLoginAndCreateSession(_CustomerGUID CHAR(36),
+                                                        _Email VARCHAR(256),
+                                                        _Password VARCHAR(256),
+                                                        _DontCheckPassword BOOLEAN)
 BEGIN
-    DECLARE _PasswordCheck BOOLEAN DEFAULT FALSE;
-    DECLARE _Authenticated BOOLEAN DEFAULT FALSE;
-    DECLARE _PasswordHashInDB VARCHAR(128);
-    DECLARE _AccountID CHAR(36);
-    DECLARE _AccountSessionGUID CHAR(36);
+
+    DECLARE _HashInDB, _HashToCheck VARCHAR(128);
+    DECLARE _UserGUID, _UserSessionGUID CHAR(36);
+    DECLARE _Authenticated ,_PasswordCheck BOOLEAN;
+
+    SET _Authenticated = FALSE;
+    SET _PasswordCheck = FALSE;
 
     DROP TEMPORARY TABLE IF EXISTS tmp_PlayerLoginAndCreateSession;
-    CREATE TEMPORARY TABLE tmp_PlayerLoginAndCreateSession (
-        Authenticated BOOLEAN,
-        AccountSessionGUID CHAR(36)
+    CREATE TEMPORARY TABLE tmp_PlayerLoginAndCreateSession
+    (
+        Authenticated   BOOLEAN,
+        UserSessionGUID CHAR(36)
     ) ENGINE = MEMORY;
 
-    -- Check password validity or bypass password check
-SELECT CASE WHEN ENCRYPT(_Password, Salt) = PasswordHash THEN TRUE ELSE FALSE END AS PasswordMatch,
-       AccountID
-INTO _PasswordCheck, _AccountID
-FROM AccountData
-WHERE CustomerGUID = _CustomerGUID
-  AND Email = _Email
-  AND Role = 'Player';
+    SELECT CASE WHEN ENCRYPT(_Password, Salt) = PasswordHash THEN TRUE ELSE FALSE END, UserGUID
+    INTO _PasswordCheck, _UserGUID
+    FROM Users
+    WHERE CustomerGUID = _CustomerGUID
+      AND Email = _Email
+      AND Role = 'Player';
 
--- If password is valid or password checking is bypassed
-IF (_PasswordCheck = TRUE OR _DontCheckPassword = TRUE) THEN
+    IF (_PasswordCheck = TRUE OR _DontCheckPassword = TRUE) THEN
         SET _Authenticated = TRUE;
+        DELETE FROM UserSessions WHERE UserGUID = _UserGUID;
+        SET _UserSessionGUID = UUID();
+        INSERT INTO UserSessions (CustomerGUID, UserSessionGUID, UserGUID, LoginDate)
+        VALUES (_CustomerGUID, _UserSessionGUID, _UserGUID, NOW());
+    END IF;
+    INSERT INTO tmp_PlayerLoginAndCreateSession (Authenticated, UserSessionGUID)
+    VALUES (_Authenticated, _UserSessionGUID);
 
-        -- Remove any existing sessions for this account
-DELETE FROM AccountSessions WHERE AccountID = _AccountID;
+    SELECT * FROM tmp_PlayerLoginAndCreateSession;
+    DROP TEMPORARY TABLE IF EXISTS tmp_PlayerLoginAndCreateSession;
 
--- Create a new session
-SET _AccountSessionGUID = UUID();
-INSERT INTO AccountSessions (CustomerGUID, AccountSessionGUID, AccountID, LoginDate)
-VALUES (_CustomerGUID, _AccountSessionGUID, _AccountID, NOW());
-END IF;
+END;
 
-    -- Insert results into the temporary table
-INSERT INTO tmp_PlayerLoginAndCreateSession (Authenticated, AccountSessionGUID)
-VALUES (_Authenticated, _AccountSessionGUID);
-
--- Return the results
-SELECT * FROM tmp_PlayerLoginAndCreateSession;
-
--- Cleanup
-DROP TEMPORARY TABLE IF EXISTS tmp_PlayerLoginAndCreateSession;
-END$$
-
-CREATE OR REPLACE PROCEDURE PlayerLogOut(
-    _CustomerGUID CHAR(36),
-    _CharName VARCHAR(50)
-)
+CREATE OR REPLACE PROCEDURE PlayerLogOut(_CustomerGUID CHAR(36),
+                                         _CharName VARCHAR(50))
 BEGIN
     DECLARE _CharacterID INT;
 
-    -- Retrieve the CharacterID for the specified character name and customer GUID
-SELECT CharacterID
-INTO _CharacterID
-FROM CharacterData WC
-WHERE WC.CharacterName = _CharName
-  AND WC.CustomerGUID = _CustomerGUID;
+    SELECT CharacterID
+    INTO _CharacterID
+    FROM Characters WC
+    WHERE WC.CharName = _CharName
+      AND WC.CustomerGUID = _CustomerGUID;
 
--- Log the logout action in the DebugLog table
-INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (NOW(), CONCAT('PlayerLogOut: CharName: ', _CharName), _CustomerGUID);
+    INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
+    VALUES (NOW(), CONCAT('PlayerLogOut: CharName: ', _CharName), _CustomerGUID);
 
--- Remove the character from the CharOnMapInstance table
-DELETE FROM CharOnMapInstance WHERE CharacterID = _CharacterID;
+    DELETE FROM CharOnMapInstance WHERE CharacterID = _CharacterID;
+    -- DELETE FROM PlayerGroupCharacters WHERE CharacterID = _CharacterID;
 
--- Optional: Uncomment the following line to remove the character from PlayerGroupCharacters
--- DELETE FROM PlayerGroupCharacters WHERE CharacterID = _CharacterID;
+END;
 
-END$$
-
-CREATE OR REPLACE PROCEDURE RemoveCharacter(
-    _CustomerGUID CHAR(36),
-    _AccountSessionGUID CHAR(36),
-    _CharacterName VARCHAR(50)
-)
+CREATE OR REPLACE PROCEDURE RemoveCharacter(_CustomerGUID CHAR(36),
+                                            _UserSessionGUID CHAR(36),
+                                            _CharacterName VARCHAR(50))
 BEGIN
     DECLARE _CharacterID INT;
-    DECLARE _AccountID CHAR(36);
+    DECLARE _UserGUID CHAR(36);
 
-    -- Retrieve AccountID from UserSessions (renamed to AccountSessions)
-SELECT US.AccountID
-INTO _AccountID
-FROM AccountSessions US
-WHERE US.CustomerGUID = _CustomerGUID
-  AND US.AccountSessionGUID = _AccountSessionGUID;
+    SELECT US.UserGUID
+    INTO _UserGUID
+    FROM UserSessions US
+    WHERE US.CustomerGUID = _CustomerGUID
+      AND US.UserSessionGUID = _UserSessionGUID;
+    IF _UserGUID IS NOT NULL THEN
+        SELECT CharacterID
+        INTO _CharacterID
+        FROM Characters C
+        WHERE C.CustomerGUID = _CustomerGUID
+          AND C.UserGUID = _UserGUID
+          AND C.CharName = _CharacterName;
+        DELETE
+        FROM CharAbilityBarAbilities
+        WHERE CustomerGUID = _CustomerGUID
+          AND CharAbilityBarID
+            IN (SELECT CharAbilityBarID
+                FROM CharAbilityBars
+                WHERE CustomerGUID = _CustomerGUID
+                  AND CharacterID = _CharacterID);
+        DELETE FROM CharAbilityBars WHERE CustomerGUID = _CustomerGUID AND CharacterID = _CharacterID;
+        DELETE FROM CharHasAbilities WHERE CustomerGUID = _CustomerGUID AND CharacterID = _CharacterID;
+        DELETE FROM CharHasItems WHERE CharacterID = _CharacterID;
+        DELETE
+        FROM CharInventoryItems
+        WHERE CustomerGUID = _CustomerGUID
+          AND CharInventoryID
+            IN (SELECT CharInventoryID
+                FROM CharInventory
+                WHERE CustomerGUID = _CustomerGUID
+                  AND CharacterID = _CharacterID);
+        DELETE FROM CharInventory WHERE CustomerGUID = _CustomerGUID AND CharacterID = _CharacterID;
+        DELETE FROM CharOnMapInstance WHERE CustomerGUID = _CustomerGUID AND CharacterID = _CharacterID;
+        DELETE FROM ChatGroupUsers WHERE CustomerGUID = _CustomerGUID AND CharacterID = _CharacterID;
+        DELETE FROM CustomCharacterData WHERE CustomerGUID = _CustomerGUID AND CharacterID = _CharacterID;
+        DELETE FROM PlayerGroupCharacters WHERE CustomerGUID = _CustomerGUID AND CharacterID = _CharacterID;
+        DELETE FROM Characters WHERE CustomerGUID = _CustomerGUID AND CharacterID = _CharacterID;
+    END IF;
 
-IF _AccountID IS NOT NULL THEN
-        -- Retrieve CharacterID from CharacterData
-SELECT CharacterID
-INTO _CharacterID
-FROM CharacterData C
-WHERE C.CustomerGUID = _CustomerGUID
-  AND C.AccountID = _AccountID
-  AND C.CharacterName = _CharacterName;
-
--- Remove related data from other tables
-DELETE FROM CharAbilityBarAbilities
-WHERE CustomerGUID = _CustomerGUID
-  AND CharAbilityBarID IN (
-    SELECT CharAbilityBarID
-    FROM CharAbilityBars
-    WHERE CustomerGUID = _CustomerGUID
-      AND CharacterID = _CharacterID
-);
-
-DELETE FROM CharAbilityBars
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID = _CharacterID;
-
-DELETE FROM CharHasAbilities
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID = _CharacterID;
-
-DELETE FROM CharHasItems
-WHERE CharacterID = _CharacterID;
-
-DELETE FROM CharInventoryItems
-WHERE CustomerGUID = _CustomerGUID
-  AND CharInventoryID IN (
-    SELECT CharInventoryID
-    FROM CharInventory
-    WHERE CustomerGUID = _CustomerGUID
-      AND CharacterID = _CharacterID
-);
-
-DELETE FROM CharInventory
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID = _CharacterID;
-
-DELETE FROM CharOnMapInstance
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID = _CharacterID;
-
-DELETE FROM ChatGroupAccountData
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID = _CharacterID;
-
-DELETE FROM CustomCharacterData
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID = _CharacterID;
-
-DELETE FROM PlayerGroupCharacters
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID = _CharacterID;
-
--- Finally, remove the character from CharacterData
-DELETE FROM CharacterData
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterID = _CharacterID;
-END IF;
-END$$
+END;
 
 CREATE OR REPLACE PROCEDURE SetMapInstanceStatus(_MapInstanceID INT,
                                                  _MapInstanceStatus INT)
@@ -2364,211 +2384,184 @@ BEGIN
     RETURN _WorldServerID;
 END;
 
-CREATE OR REPLACE PROCEDURE UpdateCharacterStats(
-    _CustomerGUID CHAR(36),
-    _CharName VARCHAR(50),
-    _CharacterLevel SMALLINT,
-    _Gender SMALLINT,
-    _Weight FLOAT,
-    _Size SMALLINT,
-    _Fame FLOAT,
-    _Alignment FLOAT,
-    _Description TEXT,
-    _XP INT,
-    _X FLOAT,
-    _Y FLOAT,
-    _Z FLOAT,
-    _RX FLOAT,
-    _RY FLOAT,
-    _RZ FLOAT,
-    _Fishing FLOAT,
-    _Mining FLOAT,
-    _Woodcutting FLOAT,
-    _Smelting FLOAT,
-    _Smithing FLOAT,
-    _Cooking FLOAT,
-    _Fletching FLOAT,
-    _Tailoring FLOAT,
-    _Hunting FLOAT,
-    _Leatherworking FLOAT,
-    _Farming FLOAT,
-    _Herblore FLOAT,
-    _Spirit FLOAT,
-    _Magic FLOAT,
-    _TeamNumber INT,
-    _Thirst FLOAT,
-    _Hunger FLOAT,
-    _Gold INT,
-    _Score INT,
-    _HitDie SMALLINT,
-    _Wounds FLOAT,
-    _MaxHealth FLOAT,
-    _Health FLOAT,
-    _HealthRegenRate FLOAT,
-    _MaxMana FLOAT,
-    _Mana FLOAT,
-    _ManaRegenRate FLOAT,
-    _MaxEnergy FLOAT,
-    _Energy FLOAT,
-    _EnergyRegenRate FLOAT,
-    _MaxFatigue FLOAT,
-    _Fatigue FLOAT,
-    _FatigueRegenRate FLOAT,
-    _MaxStamina FLOAT,
-    _Stamina FLOAT,
-    _StaminaRegenRate FLOAT,
-    _MaxEndurance FLOAT,
-    _Endurance FLOAT,
-    _EnduranceRegenRate FLOAT,
-    _Strength FLOAT,
-    _Dexterity FLOAT,
-    _Constitution FLOAT,
-    _Intellect FLOAT,
-    _Wisdom FLOAT,
-    _Charisma FLOAT,
-    _Agility FLOAT,
-    _Fortitude FLOAT,
-    _Reflex FLOAT,
-    _Willpower FLOAT,
-    _BaseAttack FLOAT,
-    _BaseAttackBonus FLOAT,
-    _AttackPower FLOAT,
-    _AttackSpeed FLOAT,
-    _CritChance FLOAT,
-    _CritMultiplier FLOAT,
-    _Haste FLOAT,
-    _SpellPower FLOAT,
-    _SpellPenetration FLOAT,
-    _Defense FLOAT,
-    _Dodge FLOAT,
-    _Parry FLOAT,
-    _Avoidance FLOAT,
-    _Versatility FLOAT,
-    _Multishot FLOAT,
-    _Initiative FLOAT,
-    _NaturalArmor FLOAT,
-    _PhysicalArmor FLOAT,
-    _BonusArmor FLOAT,
-    _ForceArmor FLOAT,
-    _MagicArmor FLOAT,
-    _Resistance FLOAT,
-    _ReloadSpeed FLOAT,
-    _Range FLOAT,
-    _Speed FLOAT,
-    _Silver INT,
-    _Copper INT,
-    _FreeCurrency INT,
-    _PremiumCurrency INT,
-    _Perception FLOAT,
-    _Acrobatics FLOAT,
-    _Climb FLOAT,
-    _Stealth FLOAT
-)
+CREATE OR REPLACE PROCEDURE UpdateCharacterStats(_CustomerGUID CHAR(36),
+                                                 _CharName VARCHAR(50),
+                                                 _CharacterLevel SMALLINT,
+                                                 _Gender SMALLINT,
+                                                 _Weight FLOAT,
+                                                 _Size SMALLINT,
+                                                 _Fame FLOAT,
+                                                 _Alignment FLOAT,
+                                                 _Description TEXT,
+                                                 _XP INT,
+                                                 _X FLOAT,
+                                                 _Y FLOAT,
+                                                 _Z FLOAT,
+                                                 _RX FLOAT,
+                                                 _RY FLOAT,
+                                                 _RZ FLOAT,
+                                                 _TeamNumber INT,
+                                                 _HitDie SMALLINT,
+                                                 _Wounds FLOAT,
+                                                 _Thirst FLOAT,
+                                                 _Hunger FLOAT,
+                                                 _MaxHealth FLOAT,
+                                                 _Health FLOAT,
+                                                 _HealthRegenRate FLOAT,
+                                                 _MaxMana FLOAT,
+                                                 _Mana FLOAT,
+                                                 _ManaRegenRate FLOAT,
+                                                 _MaxEnergy FLOAT,
+                                                 _Energy FLOAT,
+                                                 _EnergyRegenRate FLOAT,
+                                                 _MaxFatigue FLOAT,
+                                                 _Fatigue FLOAT,
+                                                 _FatigueRegenRate FLOAT,
+                                                 _MaxStamina FLOAT,
+                                                 _Stamina FLOAT,
+                                                 _StaminaRegenRate FLOAT,
+                                                 _MaxEndurance FLOAT,
+                                                 _Endurance FLOAT,
+                                                 _EnduranceRegenRate FLOAT,
+                                                 _Strength FLOAT,
+                                                 _Dexterity FLOAT,
+                                                 _Constitution FLOAT,
+                                                 _Intellect FLOAT,
+                                                 _Wisdom FLOAT,
+                                                 _Charisma FLOAT,
+                                                 _Agility FLOAT,
+                                                 _Spirit FLOAT,
+                                                 _Magic FLOAT,
+                                                 _Fortitude FLOAT,
+                                                 _Reflex FLOAT,
+                                                 _Willpower FLOAT,
+                                                 _BaseAttack FLOAT,
+                                                 _BaseAttackBonus FLOAT,
+                                                 _AttackPower FLOAT,
+                                                 _AttackSpeed FLOAT,
+                                                 _CritChance FLOAT,
+                                                 _CritMultiplier FLOAT,
+                                                 _Haste FLOAT,
+                                                 _SpellPower FLOAT,
+                                                 _SpellPenetration FLOAT,
+                                                 _Defense FLOAT,
+                                                 _Dodge FLOAT,
+                                                 _Parry FLOAT,
+                                                 _Avoidance FLOAT,
+                                                 _Versatility FLOAT,
+                                                 _Multishot FLOAT,
+                                                 _Initiative FLOAT,
+                                                 _NaturalArmor FLOAT,
+                                                 _PhysicalArmor FLOAT,
+                                                 _BonusArmor FLOAT,
+                                                 _ForceArmor FLOAT,
+                                                 _MagicArmor FLOAT,
+                                                 _Resistance FLOAT,
+                                                 _ReloadSpeed FLOAT,
+                                                 _Range FLOAT,
+                                                 _Speed FLOAT,
+                                                 _Gold INT,
+                                                 _Silver INT,
+                                                 _Copper INT,
+                                                 _FreeCurrency INT,
+                                                 _PremiumCurrency INT,
+                                                 _Perception FLOAT,
+                                                 _Acrobatics FLOAT,
+                                                 _Climb FLOAT,
+                                                 _Stealth FLOAT,
+                                                 _Score INT)
 BEGIN
-UPDATE CharacterData
-SET
-    X = _X,
-    Y = _Y,
-    Z = _Z,
-    RX = _RX,
-    RY = _RY,
-    RZ = _RZ,
-    Fishing = _Fishing,
-    Mining = _Mining,
-    Woodcutting = _Woodcutting,
-    Smelting = _Smelting,
-    Smithing = _Smithing,
-    Cooking = _Cooking,
-    Fletching = _Fletching,
-    Tailoring = _Tailoring,
-    Hunting = _Hunting,
-    Leatherworking = _Leatherworking,
-    Farming = _Farming,
-    Herblore = _Herblore,
-    Spirit = _Spirit,
-    Magic = _Magic,
-    TeamNumber = _TeamNumber,
-    Thirst = _Thirst,
-    Hunger = _Hunger,
-    Gold = _Gold,
-    Score = _Score,
-    CharacterLevel = _CharacterLevel,
-    Gender = _Gender,
-    XP = _XP,
-    HitDie = _HitDie,
-    Wounds = _Wounds,
-    Size = _Size,
-    Weight = _Weight,
-    MaxHealth = _MaxHealth,
-    Health = _Health,
-    HealthRegenRate = _HealthRegenRate,
-    MaxMana = _MaxMana,
-    Mana = _Mana,
-    ManaRegenRate = _ManaRegenRate,
-    MaxEnergy = _MaxEnergy,
-    Energy = _Energy,
-    EnergyRegenRate = _EnergyRegenRate,
-    MaxFatigue = _MaxFatigue,
-    Fatigue = _Fatigue,
-    FatigueRegenRate = _FatigueRegenRate,
-    MaxStamina = _MaxStamina,
-    Stamina = _Stamina,
-    StaminaRegenRate = _StaminaRegenRate,
-    MaxEndurance = _MaxEndurance,
-    Endurance = _Endurance,
-    EnduranceRegenRate = _EnduranceRegenRate,
-    Strength = _Strength,
-    Dexterity = _Dexterity,
-    Constitution = _Constitution,
-    Intellect = _Intellect,
-    Wisdom = _Wisdom,
-    Charisma = _Charisma,
-    Agility = _Agility,
-    Fortitude = _Fortitude,
-    Reflex = _Reflex,
-    Willpower = _Willpower,
-    BaseAttack = _BaseAttack,
-    BaseAttackBonus = _BaseAttackBonus,
-    AttackPower = _AttackPower,
-    AttackSpeed = _AttackSpeed,
-    CritChance = _CritChance,
-    CritMultiplier = _CritMultiplier,
-    Haste = _Haste,
-    SpellPower = _SpellPower,
-    SpellPenetration = _SpellPenetration,
-    Defense = _Defense,
-    Dodge = _Dodge,
-    Parry = _Parry,
-    Avoidance = _Avoidance,
-    Versatility = _Versatility,
-    Multishot = _Multishot,
-    Initiative = _Initiative,
-    NaturalArmor = _NaturalArmor,
-    PhysicalArmor = _PhysicalArmor,
-    BonusArmor = _BonusArmor,
-    ForceArmor = _ForceArmor,
-    MagicArmor = _MagicArmor,
-    Resistance = _Resistance,
-    ReloadSpeed = _ReloadSpeed,
-    `Range` = _Range,
-    Speed = _Speed,
-    Silver = _Silver,
-    Copper = _Copper,
-    FreeCurrency = _FreeCurrency,
-    PremiumCurrency = _PremiumCurrency,
-    Perception = _Perception,
-    Acrobatics = _Acrobatics,
-    Climb = _Climb,
-    Stealth = _Stealth,
-    Fame = _Fame,
-    Alignment = _Alignment,
-    Description = _Description
-WHERE CustomerGUID = _CustomerGUID
-  AND CharacterName = _CharName;
+    UPDATE Characters
+    SET CharacterLevel=_CharacterLevel,
+        Gender=_Gender,
+        Weight=_Weight,
+        Size=_Size,
+        Fame=_Fame,
+        Alignment=_Alignment,
+        Description=_Description,
+        XP=_XP,
+        X=_X,
+        Y=_Y,
+        Z=_Z,
+        RX=_RX,
+        RY=_RY,
+        RZ=_RZ,
+        TeamNumber=_TeamNumber,
+        HitDie=_HitDie,
+        Wounds=_Wounds,
+        Thirst=_Thirst,
+        Hunger=_Hunger,
+        MaxHealth=_MaxHealth,
+        Health=_Health,
+        HealthRegenRate=_HealthRegenRate,
+        MaxMana=_MaxMana,
+        Mana=_Mana,
+        ManaRegenRate=_ManaRegenRate,
+        MaxEnergy=_MaxEnergy,
+        Energy=_Energy,
+        EnergyRegenRate=_EnergyRegenRate,
+        MaxFatigue=_MaxFatigue,
+        Fatigue=_Fatigue,
+        FatigueRegenRate=_FatigueRegenRate,
+        MaxStamina=_MaxStamina,
+        Stamina=_Stamina,
+        StaminaRegenRate=_StaminaRegenRate,
+        MaxEndurance=_MaxEndurance,
+        Endurance=_Endurance,
+        EnduranceRegenRate=_EnduranceRegenRate,
+        Strength=_Strength,
+        Dexterity=_Dexterity,
+        Constitution=_Constitution,
+        Intellect=_Intellect,
+        Wisdom=_Wisdom,
+        Charisma=_Charisma,
+        Agility=_Agility,
+        Spirit=_Spirit,
+        Magic=_Magic,
+        Fortitude=_Fortitude,
+        Reflex=_Reflex,
+        Willpower=_Willpower,
+        BaseAttack=_BaseAttack,
+        BaseAttackBonus=_BaseAttackBonus,
+        AttackPower=_AttackPower,
+        AttackSpeed=_AttackSpeed,
+        CritChance=_CritChance,
+        CritMultiplier=_CritMultiplier,
+        Haste=_Haste,
+        SpellPower=_SpellPower,
+        SpellPenetration=_SpellPenetration,
+        Defense=_Defense,
+        Dodge=_Dodge,
+        Parry=_Parry,
+        Avoidance=_Avoidance,
+        Versatility=_Versatility,
+        Multishot=_Multishot,
+        Initiative=_Initiative,
+        NaturalArmor=_NaturalArmor,
+        PhysicalArmor=_PhysicalArmor,
+        BonusArmor=_BonusArmor,
+        ForceArmor=_ForceArmor,
+        MagicArmor=_MagicArmor,
+        Resistance=_Resistance,
+        ReloadSpeed=_ReloadSpeed,
+        `Range`=_Range,
+        Speed=_Speed,
+        Gold=_Gold,
+        Silver=_Silver,
+        Copper=_Copper,
+        FreeCurrency=_FreeCurrency,
+        PremiumCurrency=_PremiumCurrency,
+        Perception=_Perception,
+        Acrobatics=_Acrobatics,
+        Climb=_Climb,
+        Stealth=_Stealth,
+        Score=_Score
+    WHERE CustomerGUID = _CustomerGUID
+      AND CharName = _CharName;
 
-INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (NOW(), CONCAT('UpdateCharacterStats: ', _CharName), _CustomerGUID);
-END$$
+    INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
+    VALUES (NOW(), CONCAT('UpdateCharacterStats: ', _CharName), _CustomerGUID);
+END;
 
 CREATE OR REPLACE PROCEDURE UpdateNumberOfPlayers(_CustomerGUID CHAR(36),
                                                   _IP VARCHAR(50),
@@ -2618,70 +2611,59 @@ BEGIN
     END IF;
 END;
 
-CREATE OR REPLACE PROCEDURE UpdatePositionOfCharacterByName(
-    _CustomerGUID CHAR(36),
-    _CharName VARCHAR(50),
-    _MapName VARCHAR(50),
-    _X FLOAT,
-    _Y FLOAT,
-    _Z FLOAT,
-    _RX FLOAT,
-    _RY FLOAT,
-    _RZ FLOAT
-)
+CREATE OR REPLACE PROCEDURE UpdatePositionOfCharacterByName(_CustomerGUID CHAR(36),
+                                                            _CharName VARCHAR(50),
+                                                            _MapName VARCHAR(50),
+                                                            _X FLOAT,
+                                                            _Y FLOAT,
+                                                            _Z FLOAT,
+                                                            _RX FLOAT,
+                                                            _RY FLOAT,
+                                                            _RZ FLOAT)
 BEGIN
-    -- Update the character's position and map
     IF (_MapName <> '') THEN
-UPDATE CharacterData
-SET
-    MapName = _MapName,
-    X = _X,
-    Y = _Y,
-    Z = _Z + 1,
-    RX = _RX,
-    RY = _RY,
-    RZ = _RZ
-WHERE CharacterName = _CharName
-  AND CustomerGUID = _CustomerGUID;
-ELSE
-UPDATE CharacterData
-SET
-    X = _X,
-    Y = _Y,
-    Z = _Z + 1,
-    RX = _RX,
-    RY = _RY,
-    RZ = _RZ
-WHERE CharacterName = _CharName
-  AND CustomerGUID = _CustomerGUID;
-END IF;
+        UPDATE Characters
+        SET
+            -- MapName=_MapName,
+            X=_X,
+            Y=_Y,
+            Z=_Z + 1,
+            RX=_RX,
+            RY=_RY,
+            RZ=_RZ
+        WHERE CharName = _CharName
+          AND CustomerGUID = _CustomerGUID;
+    ELSE
+        UPDATE Characters
+        SET X=_X,
+            Y=_Y,
+            Z=_Z + 1,
+            RX=_RX,
+            RY=_RY,
+            RZ=_RZ
+        WHERE CharName = _CharName
+          AND CustomerGUID = _CustomerGUID;
+    END IF;
 
-    -- Update the LastOnlineDate in AccountData for the account linked to this character
-UPDATE AccountData
-SET LastOnlineDate = NOW()
-WHERE AccountID = (
-    SELECT AccountID
-    FROM CharacterData
-    WHERE CustomerGUID = _CustomerGUID
-      AND CharacterName = _CharName
-);
-
--- Optionally, log the operation for debugging
+    UPDATE Users
+    SET LastAccess=NOW()
+    WHERE Users.CustomerGUID = _CustomerGUID
+      AND Users.UserGUID =
+          (SELECT UserGUID FROM Characters WHERE CustomerGUID = _CustomerGUID AND CharName = _CharName);
+/*
 INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (NOW(), CONCAT('UpdatePosition: ', _CharName, ' - ', IFNULL(_MapName, 'None')), _CustomerGUID);
-END$$
+VALUES (now(), 'UpdatePosition: ' || _CharName || ' - ' || ISNULL(_MapName,'None'), _CustomerGUID);
+*/
+END;
 
-CREATE OR REPLACE PROCEDURE AccountSessionSetSelectedCharacter(
-    _CustomerGUID CHAR(36),
-    _AccountSessionGUID CHAR(36),
-    _SelectedCharacterName VARCHAR(50)
-)
+CREATE OR REPLACE PROCEDURE UserSessionSetSelectedCharacter(_CustomerGUID CHAR(36),
+                                                            _UserSessionGUID CHAR(36),
+                                                            _SelectedCharacterName VARCHAR(50))
 BEGIN
-    -- Update the selected character name for the specified account session
-UPDATE AccountSessions
-SET SelectedCharacterName = _SelectedCharacterName
-WHERE CustomerGUID = _CustomerGUID
-  AND AccountSessionGUID = _AccountSessionGUID;
-END$$
+    UPDATE UserSessions
+    SET SelectedCharacterName=_SelectedCharacterName
+    WHERE CustomerGUID = _CustomerGUID
+      AND UserSessionGUID = _UserSessionGUID;
+END;
 
 INSERT INTO OWSVersion (OWSDBVersion) VALUES('20210829');

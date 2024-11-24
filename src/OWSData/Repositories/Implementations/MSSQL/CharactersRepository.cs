@@ -41,7 +41,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 parameters.Add("@CharName", characterName);
                 parameters.Add("@MapInstanceID", mapInstanceID);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -85,7 +85,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 parameters.Add("@CustomFieldName", addOrUpdateCustomCharacterData.CustomFieldName);
                 parameters.Add("@FieldValue", addOrUpdateCustomCharacterData.FieldValue);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -258,7 +258,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                 //Lookup the Character row by characterName
                 parameters.Add("@CharName", characterName);
-                Characters outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterByName,
+                Character outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterByName,
                     parameters,
                     commandType: CommandType.Text);
 
@@ -319,7 +319,8 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                     //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
                     //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
-                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                    // if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                    if (outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputJoinMapByCharName.WorldServerIP;
                     }
@@ -346,7 +347,8 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                     //If the login username has @localhost in it or if Users.IsInternalNetworkTestUser is set to true, then redirect the client IP to the InternalServerIP (usually 127.0.0.1 on a development PC)
                     //This is useful if you want to play a game client on the same device (development PC) as the game server while still allowing players from outside the network to connect with an external IP.
-                    if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                    // if (outputCharacter.Email.Contains("@localhost") || outputCharacter.IsInternalNetworkTestUser)
+                    if (outputCharacter.IsInternalNetworkTestUser)
                     {
                         outputObject.ServerIP = outputWorldServers.InternalServerIp;
                     }
@@ -481,7 +483,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                         commandType: CommandType.Text);
                 }
 
-                await Connection.ExecuteAsync(MSSQLQueries.UpdateUserLastAccess,
+                await Connection.ExecuteAsync(MSSQLQueries.UpdateAccountLastOnlineDate,
                     p,
                     commandType: CommandType.Text);
             }
@@ -495,7 +497,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 parameters.Add("@CustomerGUID", customerGUID);
                 parameters.Add("@CharName", characterName);
 
-                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Characters>(GenericQueries.GetCharacterIDByName,
+                var outputCharacter = await Connection.QuerySingleOrDefaultAsync<Character>(GenericQueries.GetCharacterIDByName,
                     parameters,
                     commandType: CommandType.Text);
 

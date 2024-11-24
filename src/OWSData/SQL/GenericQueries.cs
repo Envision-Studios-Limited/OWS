@@ -6,7 +6,6 @@ namespace OWSData.SQL
 {
     public static class GenericQueries
     {
-
 	    #region System Queries
 
 	    public static readonly string GetAbilities = @"SELECT AB.*, AT.AbilityTypeName
@@ -45,83 +44,166 @@ namespace OWSData.SQL
 				WHERE DCR.CustomerGUID = @CustomerGUID
 					AND DCR.DefaultSetName = @DefaultSetName";
 
-        public static readonly string GetAllCharacters = @"SELECT WC.*,
-				COALESCE(CL.ClassName,'') as ClassName
-			FROM Characters WC
-			INNER JOIN Users U
-				ON U.UserGUID = WC.UserGUID
-			INNER JOIN UserSessions US
-				ON US.UserGUID = U.UserGUID
-			LEFT JOIN Class CL
-				ON CL.ClassID = WC.ClassID
-			WHERE WC.CustomerGUID = @CustomerGUID
-			AND US.UserSessionGUID = @UserSessionGUID";
+	    public static readonly string GetAllCharacters = @"
+	    SELECT CD.*,
+	           COALESCE(CL.ClassName, '') AS ClassName
+	    FROM CharacterData CD
+	    INNER JOIN AccountData AD
+	        ON AD.AccountID = CD.AccountID
+	    INNER JOIN AccountSessions ASessions
+	        ON ASessions.AccountID = AD.AccountID
+	    LEFT JOIN Class CL
+	        ON CL.ClassID = CD.ClassID
+	    WHERE CD.CustomerGUID = @CustomerGUID
+	      AND ASessions.AccountSessionGUID = @AccountSessionGUID";
 
-        public static readonly string GetCharacterByName = @"SELECT *
-				FROM Characters
-				WHERE CustomerGUID = @CustomerGUID
-				  AND CharName = @CharName";
 
-	    public static readonly string GetCharacterIDByName = @"SELECT CharacterID
-				FROM Characters
-				WHERE CustomerGUID = @CustomerGUID
-				  AND CharName = @CharName";
 
-	    public static readonly string GetCharByCharName = @"SELECT C.*, MI.Port, WS.ServerIP, CMI.MapInstanceID, COALESCE(CL.ClassName,'') AS ClassName
-				FROM Characters C
-				LEFT JOIN Class CL
-					ON CL.ClassID = C.ClassID
-				LEFT JOIN CharOnMapInstance CMI
-					ON CMI.CharacterID = C.CharacterID
-				LEFT JOIN MapInstances MI
-					ON MI.MapInstanceID = CMI.MapInstanceID
-				LEFT JOIN WorldServers WS
-					ON WS.WorldServerID = MI.WorldServerID
-				WHERE C.CharName = @CharName
-				  AND C.CustomerGUID = @CustomerGUID
-				ORDER BY MI.MapInstanceID DESC";
+	    public static readonly string GetCharacterByName = @"
+		SELECT *
+		FROM CharacterData
+		WHERE CustomerGUID = @CustomerGUID
+		  AND CharacterName = @CharName";
 
-	    public static readonly string GetCharacterAbilities = @"SELECT A.AbilityID, A.AbilityCustomJSON, A.AbilityName, A.AbilityTypeID, A.Class, A.CustomerGUID, A.Race, A.TextureToUseForIcon, A.GameplayAbilityClassName,
-			CHA.CharHasAbilitiesID, CHA.AbilityLevel, CHA.CharHasAbilitiesCustomJSON, C.CharacterID, C.CharName 
-				FROM CharHasAbilities CHA
-				INNER JOIN Abilities A ON A.AbilityID = CHA.AbilityID AND A.CustomerGUID = CHA.CustomerGUID
-				INNER JOIN Characters C	ON C.CharacterID = CHA.CharacterID AND C.CustomerGUID = CHA.CustomerGUID
-				WHERE C.CustomerGUID = @CustomerGUID
-				  AND C.CharName = @CharName";
 
-	    public static readonly string GetCharacterAbilityByName = @"SELECT A.AbilityID, A.AbilityCustomJSON, A.AbilityName, A.AbilityTypeID, A.Class, A.CustomerGUID, A.Race, A.TextureToUseForIcon, A.GameplayAbilityClassName,
-			CHA.CharHasAbilitiesID, CHA.AbilityLevel, CHA.CharHasAbilitiesCustomJSON, C.CharacterID, C.CharName 
-				FROM CharHasAbilities CHA
-				INNER JOIN Abilities A ON A.AbilityID = CHA.AbilityID AND A.CustomerGUID = CHA.CustomerGUID
-				INNER JOIN Characters C	ON C.CharacterID = CHA.CharacterID AND C.CustomerGUID = CHA.CustomerGUID
-				WHERE C.CustomerGUID = @CustomerGUID
-				  AND C.CharName = @CharacterName
-				  AND A.AbilityName = @AbilityName";
+	    public static readonly string GetCharacterIDByName = @"
+		SELECT CharacterID
+		FROM CharacterData
+		WHERE CustomerGUID = @CustomerGUID
+		  AND CharacterName = @CharName";
 
-	    public static readonly string GetCharacterAbilityBars = @"SELECT CAB.AbilityBarName, CAB.CharAbilityBarID, COALESCE(CAB.CharAbilityBarsCustomJSON,'') as CharAbilityBarsCustomJSON, CAB.CharacterID, CAB.CustomerGUID, 
-				CAB.MaxNumberOfSlots, CAB.NumberOfUnlockedSlots 
-				FROM CharAbilityBars CAB
-				INNER JOIN Characters C ON C.CharacterID = CAB.CharacterID AND C.CustomerGUID = CAB.CustomerGUID
-				WHERE C.CustomerGUID = @CustomerGUID
-				  AND C.CharName = @CharName";
 
-	    public static readonly string GetCharacterAbilityBarsAndAbilities = @"SELECT CAB.AbilityBarName, CAB.CharAbilityBarID, COALESCE(CAB.CharAbilityBarsCustomJSON,'') as CharAbilityBarsCustomJSON, CAB.CharacterID, CAB.CustomerGUID, CAB.MaxNumberOfSlots, CAB.NumberOfUnlockedSlots, 
-				CHA.AbilityLevel, COALESCE(CHA.CharHasAbilitiesCustomJSON, '') as CharHasAbilitiesCustomJSON,
-				AB.AbilityID, AB.AbilityName, AB.AbilityTypeID, AB.Class, AB.Race, AB.TextureToUseForIcon, AB.GameplayAbilityClassName, AB.AbilityCustomJSON,
-				CABA.InSlotNumber
-				FROM CharAbilityBars CAB
-				INNER JOIN CharAbilityBarAbilities CABA ON CABA.CharAbilityBarID = CAB.CharAbilityBarID AND CABA.CustomerGUID = CAB.CustomerGUID
-				INNER JOIN CharHasAbilities CHA ON CHA.CharHasAbilitiesID = CABA.CharHasAbilitiesID AND CHA.CustomerGUID = CABA.CustomerGUID
-				INNER JOIN Abilities AB ON AB.AbilityID = CHA.AbilityID AND AB.CustomerGUID = CHA.CustomerGUID
-				INNER JOIN Characters C ON C.CharacterID = CAB.CharacterID AND C.CustomerGUID = CAB.CustomerGUID
-				WHERE C.CustomerGUID = @CustomerGUID
-				  AND C.CharName = @CharName";
+	    public static readonly string GetCharByCharName = @"
+		SELECT C.*, 
+		       MI.Port, 
+		       WS.ServerIP, 
+		       CMI.MapInstanceID, 
+		       COALESCE(CL.ClassName, '') AS ClassName
+		FROM CharacterData C
+		LEFT JOIN Class CL
+		    ON CL.ClassID = C.ClassID
+		LEFT JOIN CharOnMapInstance CMI
+		    ON CMI.CharacterID = C.CharacterID
+		LEFT JOIN MapInstances MI
+		    ON MI.MapInstanceID = CMI.MapInstanceID
+		LEFT JOIN WorldServers WS
+		    ON WS.WorldServerID = MI.WorldServerID
+		WHERE C.CharacterName = @CharName
+		  AND C.CustomerGUID = @CustomerGUID
+		ORDER BY MI.MapInstanceID DESC";
 
-	    public static readonly string GetCharacterCustomDataByName = @"SELECT *
-				FROM CustomCharacterData CCD
-				INNER JOIN Characters C ON C.CharacterID = CCD.CharacterID
-				WHERE CCD.CustomerGUID = @CustomerGUID
-				  AND C.CharName = @CharName";
+	    public static readonly string GetCharacterAbilities = @"
+		SELECT A.AbilityID, 
+		       A.AbilityCustomJSON, 
+		       A.AbilityName, 
+		       A.AbilityTypeID, 
+		       A.Class, 
+		       A.CustomerGUID, 
+		       A.Race, 
+		       A.TextureToUseForIcon, 
+		       A.GameplayAbilityClassName,
+		       CHA.CharHasAbilitiesID, 
+		       CHA.AbilityLevel, 
+		       CHA.CharHasAbilitiesCustomJSON, 
+		       C.CharacterID, 
+		       C.CharacterName
+		FROM CharHasAbilities CHA
+		INNER JOIN Abilities A 
+		    ON A.AbilityID = CHA.AbilityID 
+		   AND A.CustomerGUID = CHA.CustomerGUID
+		INNER JOIN CharacterData C
+		    ON C.CharacterID = CHA.CharacterID 
+		   AND C.CustomerGUID = CHA.CustomerGUID
+		WHERE C.CustomerGUID = @CustomerGUID
+		  AND C.CharacterName = @CharName";
+
+
+	    public static readonly string GetCharacterAbilityByName = @"
+		SELECT A.AbilityID, 
+		       A.AbilityCustomJSON, 
+		       A.AbilityName, 
+		       A.AbilityTypeID, 
+		       A.Class, 
+		       A.CustomerGUID, 
+		       A.Race, 
+		       A.TextureToUseForIcon, 
+		       A.GameplayAbilityClassName,
+		       CHA.CharHasAbilitiesID, 
+		       CHA.AbilityLevel, 
+		       CHA.CharHasAbilitiesCustomJSON, 
+		       C.CharacterID, 
+		       C.CharacterName
+		FROM CharHasAbilities CHA
+		INNER JOIN Abilities A 
+		    ON A.AbilityID = CHA.AbilityID 
+		   AND A.CustomerGUID = CHA.CustomerGUID
+		INNER JOIN CharacterData C
+		    ON C.CharacterID = CHA.CharacterID 
+		   AND C.CustomerGUID = CHA.CustomerGUID
+		WHERE C.CustomerGUID = @CustomerGUID
+		  AND C.CharacterName = @CharacterName
+		  AND A.AbilityName = @AbilityName";
+
+	    public static readonly string GetCharacterAbilityBars = @"
+		SELECT CAB.AbilityBarName, 
+		       CAB.CharAbilityBarID, 
+		       COALESCE(CAB.CharAbilityBarsCustomJSON, '') AS CharAbilityBarsCustomJSON, 
+		       CAB.CharacterID, 
+		       CAB.CustomerGUID, 
+		       CAB.MaxNumberOfSlots, 
+		       CAB.NumberOfUnlockedSlots
+		FROM CharAbilityBars CAB
+		INNER JOIN CharacterData C 
+		    ON C.CharacterID = CAB.CharacterID 
+		   AND C.CustomerGUID = CAB.CustomerGUID
+		WHERE C.CustomerGUID = @CustomerGUID
+		  AND C.CharacterName = @CharName";
+
+
+	    public static readonly string GetCharacterAbilityBarsAndAbilities = @"
+		SELECT CAB.AbilityBarName, 
+		       CAB.CharAbilityBarID, 
+		       COALESCE(CAB.CharAbilityBarsCustomJSON, '') AS CharAbilityBarsCustomJSON, 
+		       CAB.CharacterID, 
+		       CAB.CustomerGUID, 
+		       CAB.MaxNumberOfSlots, 
+		       CAB.NumberOfUnlockedSlots, 
+		       CHA.AbilityLevel, 
+		       COALESCE(CHA.CharHasAbilitiesCustomJSON, '') AS CharHasAbilitiesCustomJSON,
+		       AB.AbilityID, 
+		       AB.AbilityName, 
+		       AB.AbilityTypeID, 
+		       AB.Class, 
+		       AB.Race, 
+		       AB.TextureToUseForIcon, 
+		       AB.GameplayAbilityClassName, 
+		       AB.AbilityCustomJSON,
+		       CABA.InSlotNumber
+		FROM CharAbilityBars CAB
+		INNER JOIN CharAbilityBarAbilities CABA 
+		    ON CABA.CharAbilityBarID = CAB.CharAbilityBarID 
+		   AND CABA.CustomerGUID = CAB.CustomerGUID
+		INNER JOIN CharHasAbilities CHA 
+		    ON CHA.CharHasAbilitiesID = CABA.CharHasAbilitiesID 
+		   AND CHA.CustomerGUID = CABA.CustomerGUID
+		INNER JOIN Abilities AB 
+		    ON AB.AbilityID = CHA.AbilityID 
+		   AND AB.CustomerGUID = CHA.CustomerGUID
+		INNER JOIN CharacterData C 
+		    ON C.CharacterID = CAB.CharacterID 
+		   AND C.CustomerGUID = CAB.CustomerGUID
+		WHERE C.CustomerGUID = @CustomerGUID
+		  AND C.CharacterName = @CharName";
+
+
+	    public static readonly string GetCharacterCustomDataByName = @"
+		SELECT *
+		FROM CustomCharacterData CCD
+		INNER JOIN CharacterData C 
+		    ON C.CharacterID = CCD.CharacterID
+		WHERE CCD.CustomerGUID = @CustomerGUID
+		  AND C.CharacterName = @CharName";
+
 
 	    public static readonly string GetPlayerGroupIDByType = @"SELECT COALESCE(PG.PlayerGroupID, 0)
 				FROM PlayerGroupCharacters PGC
@@ -130,15 +212,18 @@ namespace OWSData.SQL
 				  AND PGC.CharacterID = @CharacterID
 				  AND PG.PlayerGroupTypeID = @PlayerGroupType";
 
-		public static readonly string GetUsers = @"SELECT UserGUID, FirstName, LastName, Email, CreateDate, LastAccess, Role
-				FROM Users
-				WHERE CustomerGUID = @CustomerGUID";
+	    public static readonly string GetAccounts = @"
+		SELECT AccountID, AccountName, Email, CreateDate, LastOnlineDate AS LastAccess, Role
+		FROM AccountData
+		WHERE CustomerGUID = @CustomerGUID";
 
-		public static readonly string UpdateUser = @"UPDATE Users
-				SET FirstName = @FirstName
-				  , LastName = @LastName
-				  , Email = @Email
-			  WHERE CustomerGUID = @CustomerGUID AND UserGUID = @UserGUID";
+	    public static readonly string UpdateAccount = @"
+		UPDATE AccountData
+		SET AccountName = @AccountName,
+		    Email = @Email
+		WHERE CustomerGUID = @CustomerGUID
+		  AND AccountID = @AccountID";
+
 
         public static readonly string HasCustomCharacterDataForField = @"SELECT 1
 				FROM CustomCharacterData
@@ -162,119 +247,135 @@ namespace OWSData.SQL
 				  AND CustomFieldName = @CustomFieldName
 				  AND CharacterID = @CharacterID";
 
-	    public static readonly string UpdateCharacterPosition = @"UPDATE Characters
-				SET X = @X,
-					Y = @Y,
-					Z = @Z,
-					RX = @RX,
-					RY = @RY,
-					RZ = @RZ
-				WHERE CharName = @CharName
-				  AND CustomerGUID = @CustomerGUID";
+	    public static readonly string UpdateCharacterPosition = @"
+		UPDATE CharacterData
+		SET X = @X,
+		    Y = @Y,
+		    Z = @Z,
+		    RX = @RX,
+		    RY = @RY,
+		    RZ = @RZ
+		WHERE CharacterName = @CharName
+		  AND CustomerGUID = @CustomerGUID";
 
-	    public static readonly string UpdateCharacterPositionAndMap = @"UPDATE Characters
-				SET	MapName = @MapName,
-					X = @X,
-					Y = @Y,
-					Z = @Z,
-					RX = @RX,
-					RY = @RY,
-					RZ = @RZ
-				WHERE CharName = @CharName
-				  AND CustomerGUID = @CustomerGUID";
 
-	    public static readonly string UpdateCharacterStats = @"UPDATE Characters
-				SET	CharacterLevel = @CharacterLevel,
-					Gender = @Gender,
-					Weight = @Weight,
-					Size = @Size,
-					Fame = @Fame,
-					Alignment = @Alignment,
-					Description = @Description,
-					XP = @XP,
-					X = @X,
-					Y = @Y,
-					Z = @Z,
-					RX = @RX,
-					RY = @RY,
-					RZ = @RZ,
-					TeamNumber = @TeamNumber,
-					HitDie = @HitDie,
-					Wounds = @Wounds,
-					Thirst = @Thirst,
-					Hunger = @Hunger,
-					MaxHealth = @MaxHealth,
-					Health = @Health,
-					HealthRegenRate = @HealthRegenRate,
-					MaxMana = @MaxMana,
-					Mana = @Mana,
-					ManaRegenRate = @ManaRegenRate,
-					MaxEnergy = @MaxEnergy,
-					Energy = @Energy,
-					EnergyRegenRate = @EnergyRegenRate,
-					MaxFatigue = @MaxFatigue,
-					Fatigue = @Fatigue,
-					FatigueRegenRate = @FatigueRegenRate,
-					MaxStamina = @MaxStamina,
-					Stamina = @Stamina,
-					StaminaRegenRate = @StaminaRegenRate,
-					MaxEndurance = @MaxEndurance,
-					Endurance = @Endurance,
-					EnduranceRegenRate = @EnduranceRegenRate,
-					Strength = @Strength,
-					Dexterity = @Dexterity,
-					Constitution = @Constitution,
-					Intellect = @Intellect,
-					Wisdom = @Wisdom,
-					Charisma = @Charisma,
-					Agility = @Agility,
-					Spirit = @Spirit,
-					Magic = @Magic,
-					Fortitude = @Fortitude,
-					Reflex = @Reflex,
-					Willpower = @Willpower,
-					BaseAttack = @BaseAttack,
-					BaseAttackBonus = @BaseAttackBonus,
-					AttackPower = @AttackPower,
-					AttackSpeed = @AttackSpeed,
-					CritChance = @CritChance,
-					CritMultiplier = @CritMultiplier,
-					Haste = @Haste,
-					SpellPower = @SpellPower,
-					SpellPenetration = @SpellPenetration,
-					Defense = @Defense,
-					Dodge = @Dodge,
-					Parry = @Parry,
-					Avoidance = @Avoidance,
-					Versatility = @Versatility,
-					Multishot = @Multishot,
-					Initiative = @Initiative,
-					NaturalArmor = @NaturalArmor,
-					PhysicalArmor = @PhysicalArmor,
-					BonusArmor = @BonusArmor,
-					ForceArmor = @ForceArmor,
-					MagicArmor = @MagicArmor,
-					Resistance = @Resistance,
-					ReloadSpeed = @ReloadSpeed,
-					Range = @Range,
-					Speed = @Speed,
-					Gold = @Gold,
-					Silver = @Silver,
-					Copper = @Copper,
-					FreeCurrency = @FreeCurrency,
-					PremiumCurrency = @PremiumCurrency,
-					Perception = @Perception,
-					Acrobatics = @Acrobatics,
-					Climb = @Climb,
-					Stealth = @Stealth,
-					Score = @Score
-				WHERE CharName = @CharName
-				  AND CustomerGUID = @CustomerGUID";
+	    public static readonly string UpdateCharacterPositionAndMap = @"
+		UPDATE CharacterData
+		SET MapName = @MapName,
+		    X = @X,
+		    Y = @Y,
+		    Z = @Z,
+		    RX = @RX,
+		    RY = @RY,
+		    RZ = @RZ
+		WHERE CharacterName = @CharName
+		  AND CustomerGUID = @CustomerGUID";
 
-	    public static readonly string UpdateCharacterZone = @"UPDATE Characters
-				SET	MapName = @ZoneName
-				WHERE CharacterID = @CharacterID
-				  AND CustomerGUID = @CustomerGUID";
+
+	    public static readonly string UpdateCharacterStats = @"
+		UPDATE CharacterData
+		SET CharacterLevel = @CharacterLevel,
+		    Gender = @Gender,
+		    Weight = @Weight,
+		    Size = @Size,
+		    Fame = @Fame,
+		    Alignment = @Alignment,
+		    Description = @Description,
+		    XP = @XP,
+		    X = @X,
+		    Y = @Y,
+		    Z = @Z,
+		    RX = @RX,
+		    RY = @RY,
+		    RZ = @RZ,
+		    Fishing = @Fishing,
+		    Mining = @Mining,
+		    Woodcutting = @Woodcutting,
+		    Smelting = @Smelting,
+		    Smithing = @Smithing,
+		    Cooking = @Cooking,
+		    Fletching = @Fletching,
+		    Tailoring = @Tailoring,
+		    Hunting = @Hunting,
+		    Leatherworking = @Leatherworking,
+		    Farming = @Farming,
+		    Herblore = @Herblore,
+		    Spirit = @Spirit,
+		    Magic = @Magic,
+		    TeamNumber = @TeamNumber,
+		    Thirst = @Thirst,
+		    Hunger = @Hunger,
+		    MaxHealth = @MaxHealth,
+		    Health = @Health,
+		    HealthRegenRate = @HealthRegenRate,
+		    MaxMana = @MaxMana,
+		    Mana = @Mana,
+		    ManaRegenRate = @ManaRegenRate,
+		    MaxEnergy = @MaxEnergy,
+		    Energy = @Energy,
+		    EnergyRegenRate = @EnergyRegenRate,
+		    MaxFatigue = @MaxFatigue,
+		    Fatigue = @Fatigue,
+		    FatigueRegenRate = @FatigueRegenRate,
+		    MaxStamina = @MaxStamina,
+		    Stamina = @Stamina,
+		    StaminaRegenRate = @StaminaRegenRate,
+		    MaxEndurance = @MaxEndurance,
+		    Endurance = @Endurance,
+		    EnduranceRegenRate = @EnduranceRegenRate,
+		    Strength = @Strength,
+		    Dexterity = @Dexterity,
+		    Constitution = @Constitution,
+		    Intellect = @Intellect,
+		    Wisdom = @Wisdom,
+		    Charisma = @Charisma,
+		    Agility = @Agility,
+		    Fortitude = @Fortitude,
+		    Reflex = @Reflex,
+		    Willpower = @Willpower,
+		    BaseAttack = @BaseAttack,
+		    BaseAttackBonus = @BaseAttackBonus,
+		    AttackPower = @AttackPower,
+		    AttackSpeed = @AttackSpeed,
+		    CritChance = @CritChance,
+		    CritMultiplier = @CritMultiplier,
+		    Haste = @Haste,
+		    SpellPower = @SpellPower,
+		    SpellPenetration = @SpellPenetration,
+		    Defense = @Defense,
+		    Dodge = @Dodge,
+		    Parry = @Parry,
+		    Avoidance = @Avoidance,
+		    Versatility = @Versatility,
+		    Multishot = @Multishot,
+		    Initiative = @Initiative,
+		    NaturalArmor = @NaturalArmor,
+		    PhysicalArmor = @PhysicalArmor,
+		    BonusArmor = @BonusArmor,
+		    ForceArmor = @ForceArmor,
+		    MagicArmor = @MagicArmor,
+		    Resistance = @Resistance,
+		    ReloadSpeed = @ReloadSpeed,
+		    Range = @Range,
+		    Speed = @Speed,
+		    Silver = @Silver,
+		    Copper = @Copper,
+		    FreeCurrency = @FreeCurrency,
+		    PremiumCurrency = @PremiumCurrency,
+		    Perception = @Perception,
+		    Acrobatics = @Acrobatics,
+		    Climb = @Climb,
+		    Stealth = @Stealth,
+		    Score = @Score
+		WHERE CharacterName = @CharacterName
+		  AND CustomerGUID = @CustomerGUID";
+
+
+	    public static readonly string UpdateCharacterZone = @"
+		UPDATE CharacterData
+		SET MapName = @ZoneName
+		WHERE CharacterID = @CharacterID
+		  AND CustomerGUID = @CustomerGUID";
 
         #endregion
 
@@ -371,7 +472,11 @@ namespace OWSData.SQL
 
         #region User Queries
 
-        public static readonly string Logout = @"DELETE FROM UserSessions WHERE CustomerGUID=@CustomerGuid AND UserSessionGUID=@UserSessionGUID";
+        public static readonly string Logout = @"
+		DELETE FROM AccountSessions
+		WHERE CustomerGUID = @CustomerGUID
+		  AND AccountSessionGUID = @AccountSessionGUID";
+
 
         #endregion
     }

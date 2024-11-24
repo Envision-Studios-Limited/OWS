@@ -14,9 +14,9 @@ namespace OWSPublicAPI.DTOs
         /// UserSessionGUID Request Paramater.
         /// </summary>
         /// <remarks>
-        /// Contains the User Session GUID from the request.  This identifies the User we are modifying.
+        /// Contains the Account Session ID from the request.  This identifies the User we are modifying.
         /// </remarks>
-        public Guid UserSessionGUID { get; set; }
+        public Guid AccountSessionID { get; set; }
         /// <summary>
         /// CharacterName Request Paramater.
         /// </summary>

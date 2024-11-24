@@ -1,29 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Text.Json.Serialization;
 
-namespace OWSData.Models.StoredProcs
+namespace OWSData.Models.Tables
 {
-    public class GetCharByCharName
+    public partial class Character
     {
-        public GetCharByCharName()
+        public Character()
         {
-            IsAdmin = false;
-            IsModerator = false;
+            CharHasAbilities = new HashSet<CharHasAbilities>();
+            CharHasItems = new HashSet<CharHasItems>();
+            CustomCharacterData = new HashSet<CustomCharacterData>();
         }
 
         public Guid CustomerGuid { get; set; }
         public int CharacterId { get; set; }
-        public Guid? AccountID { get; set; }
-        public string Email { get; set; }
-        public bool IsAdmin { get; set; }
-        public bool IsModerator { get; set; }
-
-        [JsonPropertyName("CharacterName")]
+        public Guid? AccountId { get; set; }
         public string CharName { get; set; }
-
         public string MapName { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
@@ -31,7 +23,6 @@ namespace OWSData.Models.StoredProcs
         public double RX { get; set; }
         public double RY { get; set; }
         public double RZ { get; set; }
-        
         public double Fishing { get; set; }
         public double Mining { get; set; }
         public double Woodcutting { get; set; }
@@ -44,7 +35,6 @@ namespace OWSData.Models.StoredProcs
         public double Leatherworking { get; set; }
         public double Farming { get; set; }
         public double Herblore { get; set; }
-        
         public double Spirit { get; set; }
         public double Magic { get; set; }
         public int TeamNumber { get; set; }
@@ -52,7 +42,6 @@ namespace OWSData.Models.StoredProcs
         public double Hunger { get; set; }
         public int Gold { get; set; }
         public int Score { get; set; }
-        
         public short CharacterLevel { get; set; }
         public byte Gender { get; set; }
         public int XP { get; set; }
@@ -60,41 +49,34 @@ namespace OWSData.Models.StoredProcs
         public double Wounds { get; set; }
         public short Size { get; set; }
         public double Weight { get; set; }
-
         public double MaxHealth { get; set; }
         public double Health { get; set; }
         public double HealthRegenRate { get; set; }
         public double MaxMana { get; set; }
         public double Mana { get; set; }
         public double ManaRegenRate { get; set; }
-
         public double MaxEnergy { get; set; }
         public double Energy { get; set; }
         public double EnergyRegenRate { get; set; }
         public double MaxFatigue { get; set; }
         public double Fatigue { get; set; }
         public double FatigueRegenRate { get; set; }
-
         public double MaxStamina { get; set; }
         public double Stamina { get; set; }
         public double StaminaRegenRate { get; set; }
-
         public double MaxEndurance { get; set; }
         public double Endurance { get; set; }
         public double EnduranceRegenRate { get; set; }
-
         public double Strength { get; set; }
         public double Dexterity { get; set; }
         public double Constitution { get; set; }
         public double Intellect { get; set; }
         public double Wisdom { get; set; }
         public double Charisma { get; set; }
-
         public double Agility { get; set; }
         public double Fortitude { get; set; }
         public double Reflex { get; set; }
         public double Willpower { get; set; }
-
         public double BaseAttack { get; set; }
         public double BaseAttackBonus { get; set; }
         public double AttackPower { get; set; }
@@ -102,10 +84,8 @@ namespace OWSData.Models.StoredProcs
         public double CritChance { get; set; }
         public double CritMultiplier { get; set; }
         public double Haste { get; set; }
-
         public double SpellPower { get; set; }
         public double SpellPenetration { get; set; }
-
         public double Defense { get; set; }
         public double Dodge { get; set; }
         public double Parry { get; set; }
@@ -113,36 +93,31 @@ namespace OWSData.Models.StoredProcs
         public double Versatility { get; set; }
         public double Multishot { get; set; }
         public double Initiative { get; set; }
-
         public double NaturalArmor { get; set; }
         public double PhysicalArmor { get; set; }
         public double BonusArmor { get; set; }
         public double ForceArmor { get; set; }
         public double MagicArmor { get; set; }
-
         public double Resistance { get; set; }
         public double ReloadSpeed { get; set; }
         public double Range { get; set; }
         public double Speed { get; set; }
-
         public int Silver { get; set; }
         public int Copper { get; set; }
         public int FreeCurrency { get; set; }
         public int PremiumCurrency { get; set; }
-
         public double Fame { get; set; }
         public double Alignment { get; set; }
-
         public string Description { get; set; }
         public string DefaultPawnClassPath { get; set; }
-
         public bool IsInternalNetworkTestUser { get; set; }
         public int ClassId { get; set; }
         public string BaseMesh { get; set; }
 
-        public int Port { get; set; }
-        public int MapInstanceID { get; set; }
-        public string ClassName { get; set; }
+        // Navigation properties
+        public ICollection<CharHasAbilities> CharHasAbilities { get; set; }
+        public ICollection<CharHasItems> CharHasItems { get; set; }
+        public ICollection<CustomCharacterData> CustomCharacterData { get; set; }
     }
 
 }
