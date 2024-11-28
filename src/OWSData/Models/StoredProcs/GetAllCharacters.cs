@@ -15,7 +15,7 @@ namespace OWSData.Models.StoredProcs
         public Guid? AccountID { get; set; }
         public int CharacterId { get; set; }
 
-        [JsonPropertyName("characterName")] public string CharName { get; set; }
+        public string CharacterName { get; set; }
 
         [JsonPropertyName("zoneName")] public string MapName { get; set; }
         public float X { get; set; }

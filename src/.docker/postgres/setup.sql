@@ -1090,10 +1090,9 @@ CREATE OR REPLACE FUNCTION AddCharacter(
     _ClassName VARCHAR(50)
 )
     RETURNS TABLE (
-        ErrorMessage VARCHAR(100),
         CharacterName VARCHAR(50),
         ClassName VARCHAR(50),
-        CharacterLevel INT,
+        CharacterLevel SMALLINT,
         StartingMapName VARCHAR(50),
         X FLOAT,
         Y FLOAT,
@@ -1128,438 +1127,189 @@ CREATE OR REPLACE FUNCTION AddCharacter(
         Herblore FLOAT
     )
     LANGUAGE PLPGSQL
-    AS $$
-    DECLARE
-        _ErrorRaised            BOOLEAN = FALSE;
-        _SupportUnicode         BOOLEAN = FALSE;
-        _AccountID              UUID;
-        _ClassID                INT;
-        _CharacterID            INT;
-        _CountOfCharNamesFound  INT     = 0;
-        _CountOfClassInventory  INT     = 0;
-        _InvalidCharacters INT;
-    BEGIN
-    CREATE TEMP TABLE IF NOT EXISTS temp_table
-    (
-            ErrorMessage    VARCHAR(100),
-            CharacterName   VARCHAR(50),
-            ClassName       VARCHAR(50),
-            CharacterLevel  INT,
-            StartingMapName VARCHAR(50),
-            X               FLOAT,
-            Y               FLOAT,
-            Z               FLOAT,
-            RX              FLOAT,
-            RY              FLOAT,
-            RZ              FLOAT,
-            TeamNumber      INT,
-            Gold            INT,
-            Silver          INT,
-            Copper          INT,
-            FreeCurrency    INT,
-            PremiumCurrency INT,
-            Fame            FLOAT,
-            Alignment       FLOAT,
-            Score           INT,
-            Gender          SMALLINT,
-            XP              INT,
-            Size            SMALLINT,
-            Weight          FLOAT,
-            Fishing         FLOAT,
-            Mining          FLOAT,
-            Woodcutting     FLOAT,
-            Smelting        FLOAT,
-            Smithing        FLOAT,
-            Cooking         FLOAT,
-            Fletching       FLOAT,
-            Tailoring       FLOAT,
-            Hunting         FLOAT,
-            Leatherworking  FLOAT,
-            Farming         FLOAT,
-            Herblore        FLOAT
-    ) ON COMMIT DROP;
-
-    SELECT C.SupportUnicode INTO _SupportUnicode FROM Customers C WHERE C.CustomerGUID = _CustomerGUID;
-           
-    -- Validate account session and retrieve AccountID
-    SELECT US.AccountID
-    FROM AccountSessions US
-    WHERE US.CustomerGUID = _CustomerGUID
-      AND US.AccountSessionGUID = _AccountSessionGUID
+AS $$
+DECLARE
+_AccountID UUID;
+    _ClassID INT;
+    _CharacterID INT;
+    _CharacterExists BOOLEAN;
+    _InvalidCharacters INT;
+BEGIN
+    -- Validate Account Session
+SELECT US.AccountID
+FROM AccountSessions US
+WHERE US.CustomerGUID = _CustomerGUID
+  AND US.AccountSessionGUID = _AccountSessionGUID
     INTO _AccountID;
 
-    SELECT C.ClassID INTO _ClassID FROM Class C WHERE C.CustomerGUID = _CustomerGUID AND C.ClassName = _ClassName;
-    raise notice '_ClassID: %', _ClassID;
+IF _AccountID IS NULL THEN
+        RAISE EXCEPTION 'Invalid Account Session.';
+END IF;
 
-    SELECT CONCAT(COUNT(*), 0)
+    -- Validate Class Name
+SELECT C.ClassID
+FROM Class C
+WHERE C.CustomerGUID = _CustomerGUID
+  AND C.ClassName = _ClassName
+    INTO _ClassID;
+
+IF _ClassID IS NULL THEN
+        RAISE EXCEPTION 'Invalid Class Name.';
+END IF;
+
+    -- Validate Character Name
+SELECT EXISTS (
+    SELECT 1
     FROM CharacterData CD
     WHERE CD.CustomerGUID = _CustomerGUID
       AND CD.CharacterName = _CharacterName
-    INTO _CountOfCharNamesFound;
-    _CharacterName := TRIM(BOTH FROM _CharacterName);
-    _CharacterName := REPLACE(REPLACE(REPLACE(_CharacterName, ' ', '<>'), '><', ''), '<>', ' ');
-    _InvalidCharacters := LENGTH(ARRAY_TO_STRING(REGEXP_MATCHES(_CharacterName, '[^a-zA-Z0-9 ]'), ''));
-          
-    IF _InvalidCharacters > 0 AND _SupportUnicode = FALSE THEN
-    -- Insert error related to character name validation
-    INSERT INTO temp_table
-    VALUES (
-        'Character Name can only contain letters, numbers, and spaces', 
-        NULL,  -- CharacterName
-        NULL,  -- ClassName
-        0,     -- CharacterLevel
-        NULL,  -- StartingMapName
-        0,     -- X
-        0,     -- Y
-        0,     -- Z
-        0,     -- RX
-        0,     -- RY
-        0,     -- RZ
-        0,     -- TeamNumber
-        0,     -- Gold
-        0,     -- Silver
-        0,     -- Copper
-        0,     -- FreeCurrency
-        0,     -- PremiumCurrency
-        0,     -- Fame
-        0,     -- Alignment
-        0,     -- Score
-        0,     -- Gender
-        0,     -- XP
-        0,     -- Size
-        0,     -- Weight
-        0,     -- Fishing
-        0,     -- Mining
-        0,     -- Woodcutting
-        0,     -- Smelting
-        0,     -- Smithing
-        0,     -- Cooking
-        0,     -- Fletching
-        0,     -- Tailoring
-        0,     -- Hunting
-        0,     -- Leatherworking
-        0,     -- Farming
-        0      -- Herblore
-    );
-    _ErrorRaised := TRUE;
-    END IF;
+) INTO _CharacterExists;
 
-    IF _ErrorRaised = FALSE AND _AccountID IS NULL THEN
-    -- Insert error related to invalid account session
-    INSERT INTO temp_table
-    VALUES (
-        'Invalid Account Session', 
-        NULL, 
-        NULL, 
-        0, 
-        NULL, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0
-    );
-    _ErrorRaised := TRUE;
-    END IF;
-
-    IF _ErrorRaised = FALSE AND _ClassID IS NULL THEN
-    -- Insert error related to invalid class name
-    INSERT INTO temp_table
-    VALUES (
-        'Invalid Class Name', 
-        NULL, 
-        NULL, 
-        0, 
-        NULL, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0
-    );
-    _ErrorRaised := TRUE;
-    END IF;
-
-    IF _ErrorRaised = FALSE AND _CountOfCharNamesFound > 0 THEN
-    -- Insert error related to character name already existing
-    INSERT INTO temp_table
-    VALUES (
-        'Character Name Already Exists', 
-        NULL, 
-        NULL, 
-        0, 
-        NULL, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0
-    );
-    _ErrorRaised := TRUE;
-    END IF;
-
-    IF _ErrorRaised = FALSE THEN
-
-    SELECT CONCAT(COUNT(*), 0)
-    FROM ClassInventory CI
-    WHERE CI.CustomerGUID = _CustomerGUID
-    AND CI.ClassID = _ClassID
-    INTO _CountOfClassInventory;
-
-    -- Insert Character into CharacterData
-    INSERT INTO CharacterData (
-        CustomerGUID, AccountID, ClassID, CharacterName, MapName, X, Y, Z, RX, RY, RZ,
-        Fishing, Mining, Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring,
-        Hunting, Leatherworking, Farming, Herblore, Spirit, Magic, TeamNumber,
-        Thirst, Hunger, Gold, Score, CharacterLevel, Gender, XP, HitDie, Wounds,
-        Size, Weight, MaxHealth, Health, HealthRegenRate, MaxMana, Mana, ManaRegenRate,
-        MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate,
-        MaxStamina, Stamina, StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate,
-        Strength, Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility,
-        Fortitude, Reflex, Willpower, BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed,
-        CritChance, CritMultiplier, Haste, SpellPower, SpellPenetration, Defense, Dodge,
-        Parry, Avoidance, Versatility, Multishot, Initiative, NaturalArmor, PhysicalArmor,
-        BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, Range, Speed,
-        Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Description)
-    SELECT _CustomerGUID,
-           _AccountID,
-           _ClassID,
-           _CharacterName,
-           CL.StartingMapName,
-           CL.X, 
-           CL.Y, 
-           CL.Z, 
-           CL.RX, 
-           CL.RY, 
-           CL.RZ,
-           CL.Fishing, 
-           CL.Mining, 
-           CL.Woodcutting, 
-           CL.Smelting, 
-           CL.Smithing, 
-           CL.Cooking, 
-           CL.Fletching, 
-           CL.Tailoring,
-           CL.Hunting, 
-           CL.Leatherworking, 
-           CL.Farming,
-           CL.Herblore,
-           CL.Spirit,
-           CL.Magic,
-           CL.TeamNumber,
-           CL.Thirst,
-           CL.Hunger,
-           CL.Gold,
-           CL.Score,
-           CL.CharacterLevel,
-           CL.Gender,
-           CL.XP,
-           CL.HitDie,
-           CL.Wounds,
-           CL.Size,
-           CL.Weight,
-           CL.MaxHealth,
-           CL.Health,
-           CL.HealthRegenRate,
-           CL.MaxMana,
-           CL.Mana,
-           CL.ManaRegenRate,
-           CL.MaxEnergy,
-           CL.Energy,
-           CL.EnergyRegenRate,
-           CL.MaxFatigue,
-           CL.Fatigue,
-           CL.FatigueRegenRate,
-           CL.MaxStamina, 
-           CL.Stamina, 
-           CL.StaminaRegenRate, 
-           CL.MaxEndurance, 
-           CL.Endurance, 
-           CL.EnduranceRegenRate,
-           CL.Strength, 
-            CL.Dexterity, 
-            CL.Constitution, 
-            CL.Intellect, 
-            CL.Wisdom, 
-            CL.Charisma, 
-            CL.Agility,
-            Fortitude, 
-            CL.Reflex, 
-            CL.Willpower, 
-            CL.BaseAttack, 
-            CL.BaseAttackBonus, 
-            CL.AttackPower, 
-            CL.AttackSpeed,
-            CritChance, 
-            CL.CritMultiplier, 
-            CL.Haste, 
-            CL.SpellPower, 
-            CL.SpellPenetration, 
-            CL.Defense, 
-            CL.Dodge,
-           CL.Parry, 
-            CL.Avoidance, 
-            CL.Versatility, 
-            CL.Multishot, 
-            CL.Initiative, 
-            CL.NaturalArmor, 
-            CL.PhysicalArmor,
-           CL.BonusArmor, 
-            CL.ForceArmor, 
-            CL.MagicArmor, 
-            CL.Resistance, 
-            CL.ReloadSpeed, 
-            CL.Range, 
-            CL.Speed,
-            Silver, 
-            CL.Copper, 
-            CL.FreeCurrency, 
-            CL.PremiumCurrency, 
-            CL.Fame, 
-            CL.Alignment, 
-            CL.Description
-    FROM Class CL
-    WHERE CL.ClassID = _ClassID
-      AND CL.CustomerGUID = _CustomerGUID;
-
-    _CharacterID := CURRVAL(PG_GET_SERIAL_SEQUENCE('characters', 'characterid'));
-
-    INSERT INTO temp_table (CharacterName,
-                            ClassName,
-                            CharacterLevel,
-                            StartingMapName,
-                            X,
-                            Y,
-                            Z,
-                            RX,
-                            RY,
-                            RZ,
-                            TeamNumber,
-                            Gold,
-                            Silver,
-                            Copper,
-                            FreeCurrency,
-                            PremiumCurrency,
-                            Fame,
-                            Alignment,
-                            Score,
-                            Gender,
-                            XP,
-                            Size,
-                            Weight,
-                            Fishing,
-                            Mining,
-                            Woodcutting,
-                            Smelting,
-                            Smithing,
-                            Cooking,
-                            Fletching,
-                            Tailoring,
-                            Hunting,
-                            Leatherworking,
-                            Farming,
-                            Herblore)
-        SELECT 
-            _CharacterName,
-            _ClassName,
-            CD.CharacterLevel,
-            CD.MapName,
-            CD.X,
-            CD.Y,
-            CD.Z,
-            CD.RX,
-            CD.RY,
-            CD.RZ,
-            CD.TeamNumber,
-            CD.Gold,
-            CD.Silver,
-            CD.Copper,
-            CD.FreeCurrency,
-            CD.PremiumCurrency,
-            CD.Fame,
-            CD.Alignment,
-            CD.Score,
-            CD.Gender,
-            CD.XP,
-            CD.Size,
-            CD.Weight,
-            CD.Fishing,
-            CD.Mining,
-            CD.Woodcutting,
-            CD.Smelting,
-            CD.Smithing,
-            CD.Cooking,
-            CD.Fletching,
-            CD.Tailoring,
-            CD.Hunting,
-            CD.Leatherworking,
-            CD.Farming,
-            CD.Herblore)
-        FROM CharacterData CD
-            WHERE CD.CharacterID = _CharacterID;
-
-        IF _CountOfClassInventory < 1 THEN
-            INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize, InventoryWidth, InventoryHeight)
-            VALUES (_CustomerGUID, _CharacterID, 'Bag', 16, 4, 4);
-        ELSE
-            INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize, InventoryWidth, InventoryHeight)
-        SELECT _CustomerGUID,
-               _CharacterID,
-               CI.InventoryName,
-               CI.InventorySize,
-               CI.InventoryWidth,
-               CI.InventoryHeight
-        FROM ClassInventory CI
-        WHERE CI.CustomerGUID = _CustomerGUID
-          AND CI.ClassID = _ClassID;
-    END IF;
+IF _CharacterExists THEN
+        RAISE EXCEPTION 'Character Name Already Exists.';
 END IF;
 
-    RETURN QUERY SELECT * FROM temp_table;
+    -- Check for invalid characters in Character Name
+    _CharacterName := TRIM(BOTH FROM _CharacterName); -- Trim spaces
+    _CharacterName := REPLACE(REPLACE(REPLACE(_CharacterName, ' ', '<>'), '><', ''), '<>', ' '); -- Replace invalid spacing
+    _InvalidCharacters := LENGTH(ARRAY_TO_STRING(REGEXP_MATCHES(_CharacterName, '[^a-zA-Z0-9 ]'), ''));
+
+    IF _InvalidCharacters > 0 THEN
+        RAISE EXCEPTION 'Character Name contains invalid characters. Only letters, numbers, and spaces are allowed.';
+END IF;
+
+    -- Insert Character
+INSERT INTO CharacterData (
+    CustomerGUID, AccountID, ClassID, CharacterName, MapName, X, Y, Z, RX, RY, RZ,
+    Fishing, Mining, Woodcutting, Smelting, Smithing, Cooking, Fletching, Tailoring,
+    Hunting, Leatherworking, Farming, Herblore, Spirit, Magic, TeamNumber,
+    Thirst, Hunger, Gold, Score, CharacterLevel, Gender, XP, HitDie, Wounds,
+    Size, Weight, MaxHealth, Health, HealthRegenRate, MaxMana, Mana, ManaRegenRate,
+    MaxEnergy, Energy, EnergyRegenRate, MaxFatigue, Fatigue, FatigueRegenRate,
+    MaxStamina, Stamina, StaminaRegenRate, MaxEndurance, Endurance, EnduranceRegenRate,
+    Strength, Dexterity, Constitution, Intellect, Wisdom, Charisma, Agility,
+    Fortitude, Reflex, Willpower, BaseAttack, BaseAttackBonus, AttackPower, AttackSpeed,
+    CritChance, CritMultiplier, Haste, SpellPower, SpellPenetration, Defense, Dodge,
+    Parry, Avoidance, Versatility, Multishot, Initiative, NaturalArmor, PhysicalArmor,
+    BonusArmor, ForceArmor, MagicArmor, Resistance, ReloadSpeed, Range, Speed,
+    Silver, Copper, FreeCurrency, PremiumCurrency, Fame, Alignment, Description)
+SELECT _CustomerGUID,
+       _AccountID,
+       _ClassID,
+       _CharacterName,
+       CL.StartingMapName,
+       CL.X,
+       CL.Y,
+       CL.Z,
+       CL.RX,
+       CL.RY,
+       CL.RZ,
+       CL.Fishing,
+       CL.Mining,
+       CL.Woodcutting,
+       CL.Smelting,
+       CL.Smithing,
+       CL.Cooking,
+       CL.Fletching,
+       CL.Tailoring,
+       CL.Hunting,
+       CL.Leatherworking,
+       CL.Farming,
+       CL.Herblore,
+       CL.Spirit,
+       CL.Magic,
+       CL.TeamNumber,
+       CL.Thirst,
+       CL.Hunger,
+       CL.Gold,
+       CL.Score,
+       CL.CharacterLevel,
+       CL.Gender,
+       CL.XP,
+       CL.HitDie,
+       CL.Wounds,
+       CL.Size,
+       CL.Weight,
+       CL.MaxHealth,
+       CL.Health,
+       CL.HealthRegenRate,
+       CL.MaxMana,
+       CL.Mana,
+       CL.ManaRegenRate,
+       CL.MaxEnergy,
+       CL.Energy,
+       CL.EnergyRegenRate,
+       CL.MaxFatigue,
+       CL.Fatigue,
+       CL.FatigueRegenRate,
+       CL.MaxStamina,
+       CL.Stamina,
+       CL.StaminaRegenRate,
+       CL.MaxEndurance,
+       CL.Endurance,
+       CL.EnduranceRegenRate,
+       CL.Strength,
+       CL.Dexterity,
+       CL.Constitution,
+       CL.Intellect,
+       CL.Wisdom,
+       CL.Charisma,
+       CL.Agility,
+       CL.Fortitude,
+       CL.Reflex,
+       CL.Willpower,
+       CL.BaseAttack,
+       CL.BaseAttackBonus,
+       CL.AttackPower,
+       CL.AttackSpeed,
+       CL.CritChance,
+       CL.CritMultiplier,
+       CL.Haste,
+       CL.SpellPower,
+       CL.SpellPenetration,
+       CL.Defense,
+       CL.Dodge,
+       CL.Parry,
+       CL.Avoidance,
+       CL.Versatility,
+       CL.Multishot,
+       CL.Initiative,
+       CL.NaturalArmor,
+       CL.PhysicalArmor,
+       CL.BonusArmor,
+       CL.ForceArmor,
+       CL.MagicArmor,
+       CL.Resistance,
+       CL.ReloadSpeed,
+       CL.Range,
+       CL.Speed,
+       CL.Silver,
+       CL.Copper,
+       CL.FreeCurrency,
+       CL.PremiumCurrency,
+       CL.Fame,
+       CL.Alignment,
+       CL.Description
+FROM Class CL
+WHERE CL.ClassID = _ClassID
+  AND CL.CustomerGUID = _CustomerGUID;
+
+-- Get CharacterID
+_CharacterID := CURRVAL(PG_GET_SERIAL_SEQUENCE('characterdata', 'characterid'));
+
+    -- Return Inserted Character
+RETURN QUERY
+SELECT CD.CharacterName, CL.ClassName, CD.CharacterLevel, CD.MapName, CD.X, CD.Y, CD.Z, CD.RX, CD.RY, CD.RZ,
+       CD.TeamNumber, CD.Gold, CD.Silver, CD.Copper, CD.FreeCurrency, CD.PremiumCurrency, CD.Fame, CD.Alignment,
+       CD.Score, CD.Gender, CD.XP, CD.Size, CD.Weight, CD.Fishing, CD.Mining, CD.Woodcutting, CD.Smelting,
+       CD.Smithing, CD.Cooking, CD.Fletching, CD.Tailoring, CD.Hunting, CD.Leatherworking, CD.Farming,
+       CD.Herblore
+FROM CharacterData CD
+         INNER JOIN Class CL ON CD.ClassID = CL.ClassID
+WHERE CD.CharacterID = _CharacterID;
 END
 $$;
+
 
 CREATE OR REPLACE PROCEDURE AddCharacterToMapInstanceByCharName(
     _CustomerGUID UUID,
@@ -2692,7 +2442,7 @@ FROM AccountSessions US
                     ON A.AccountID = US.AccountID
          LEFT JOIN CharacterData C
                    ON C.CustomerGUID = US.CustomerGUID
-                       AND C.CharacterName = US.SelectedCharacterName
+                       AND LOWER(C.CharacterName) = LOWER(US.SelectedCharacterName)
                        AND C.AccountID = US.AccountID
 WHERE US.CustomerGUID = _CustomerGUID
   AND US.AccountSessionGUID = _AccountSessionGUID;
