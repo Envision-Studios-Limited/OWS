@@ -5,6 +5,6 @@ namespace OWSPublicAPI.DTOs
 
     public class LogoutDTO
     {
-        public Guid UserSessionGUID { get; set; }
+        public Guid AccountSessionGUID { get; set; }
     }
 }

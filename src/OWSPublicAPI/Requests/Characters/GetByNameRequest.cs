@@ -56,7 +56,7 @@ namespace OWSPublicAPI.Requests.Characters
             CharacterAndCustomData Output = new CharacterAndCustomData();
 
             //Get the User Session
-            GetAccountSession userSession = await _accountRepository.GetAccountSession(_customerGUID, new Guid(_getByNameDTO.UserSessionGUID));
+            GetAccountSession userSession = await _accountRepository.GetAccountSession(_customerGUID, new Guid(_getByNameDTO.AccountSessionGUID));
 
             //Make sure the User Session is valid
             if (userSession == null || !userSession.AccountID.HasValue)

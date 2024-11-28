@@ -23,7 +23,7 @@ namespace OWSPublicAPI.Requests.Account
 
         public async Task<SuccessAndErrorMessage> Handle()
         {
-            return await _accountRepository.Logout(_customerGuid.CustomerGUID, _logoutDTO.UserSessionGUID);
+            return await _accountRepository.Logout(_customerGuid.CustomerGUID, _logoutDTO.AccountSessionGUID);
         }
     }
 }

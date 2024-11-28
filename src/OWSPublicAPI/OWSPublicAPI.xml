@@ -214,12 +214,12 @@
             GetByNameDTO is data transfer object for GetByNameRequest
             </remarks>
         </member>
-        <member name="P:OWSPublicAPI.DTOs.GetByNameDTO.UserSessionGUID">
+        <member name="P:OWSPublicAPI.DTOs.GetByNameDTO.AccountSessionGUID">
             <summary>
-            UserSessionGUID Request Parameter
+            AccountSessionGUID Request Parameter
             </summary>
             <remarks>
-            Contains the User Session GUID from the request
+            Contains the Account Session GUID from the request
             </remarks>
         </member>
         <member name="P:OWSPublicAPI.DTOs.GetByNameDTO.CharacterName">

@@ -21,8 +21,7 @@ namespace OWSData.Models.StoredProcs
         public bool IsAdmin { get; set; }
         public bool IsModerator { get; set; }
 
-        [JsonPropertyName("CharacterName")]
-        public string CharName { get; set; }
+        public string CharacterName { get; set; }
 
         public string MapName { get; set; }
         public double X { get; set; }

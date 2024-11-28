@@ -9,12 +9,12 @@
     public class GetByNameDTO
     {
         /// <summary>
-        /// UserSessionGUID Request Parameter
+        /// AccountSessionGUID Request Parameter
         /// </summary>
         /// <remarks>
-        /// Contains the User Session GUID from the request
+        /// Contains the Account Session GUID from the request
         /// </remarks>
-        public string UserSessionGUID { get; set; }
+        public string AccountSessionGUID { get; set; }
 
         /// <summary>
         /// CharacterName Request Paramater
