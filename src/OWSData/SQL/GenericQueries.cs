@@ -410,10 +410,32 @@ namespace OWSData.SQL
 
         #region Zone Queries
 
-        public static readonly string GetMapInstance = @"SELECT *
-				FROM MapInstances
-				WHERE CustomerGUID = @CustomerGUID
-				  AND MapInstanceID = @MapInstanceID";
+        public static readonly string GetMapInstance = @"
+		    SELECT 
+		        MI.CustomerGUID,
+		        MI.MapInstanceID,
+		        MI.WorldServerID,
+		        MI.Port,
+		        MI.Status,
+		        MI.PlayerGroupID,
+		        MI.NumberOfReportedPlayers,
+		        MI.LastUpdateFromServer,
+		        MI.LastServerEmptyDate,
+		        MI.CreateDate,
+		        M.MapName,
+		        M.ZoneName,
+		        M.WorldCompContainsFilter,
+		        M.WorldCompListFilter,
+		        M.SoftPlayerCap,
+		        WS.MaxNumberOfInstances,
+		        WS.ActiveStartTime,
+		        WS.ServerStatus,
+		        WS.InternalServerIP
+		    FROM MapInstances MI
+		    JOIN Maps M ON MI.MapID = M.MapID AND MI.CustomerGUID = M.CustomerGUID
+		    JOIN WorldServers WS ON MI.WorldServerID = WS.WorldServerID AND MI.CustomerGUID = WS.CustomerGUID
+		    WHERE MI.CustomerGUID = @CustomerGUID
+		      AND MI.MapInstanceID = @MapInstanceID";
 
         public static readonly string GetMapInstancesByIpAndPort = @"SELECT M.MapName, M.ZoneName, M.WorldCompContainsFilter, M.WorldCompListFilter, 
 				MI.MapInstanceID, MI.Status, 
