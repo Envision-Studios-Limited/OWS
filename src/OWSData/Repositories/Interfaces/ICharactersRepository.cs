@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
 using OWSData.Models.Tables;
 
@@ -27,5 +28,6 @@ namespace OWSData.Repositories.Interfaces
         Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0);
         Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName);
         Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON);
+        Task<AddItemToInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity);
     }
 }

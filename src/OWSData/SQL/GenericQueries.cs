@@ -501,5 +501,29 @@ namespace OWSData.SQL
 
 
         #endregion
+        
+        #region Item Queries
+        public static readonly string GetItemByItemId = @"
+			SELECT
+			    I.*,
+			    IA.ActionName,
+				IT.TagName,
+			FROM
+			    Items I
+			LEFT JOIN
+				ItemActionMappings IAM ON I.CustomerGUID = IAM.CustomerGUID AND I.ItemID = IAM.ItemID
+			LEFT JOIN
+				ItemActions IA ON IAM.CustomerGUID = IA.CustomerGUID AND IAM.ItemActionID = IA.ItemActionID
+			LEFT JOIN
+			    ItemTagMappings ITM ON I.CustomerGUID = ITM.CustomerGUID AND I.ItemID = ITM.ItemID
+			LEFT JOIN
+			    ItemTags IT ON ITM.CustomerGUID = IT.CustomerGUID AND ITM.ItemTagID = IT.ItemTagID
+			LEFT JOIN
+				ItemStatMappings ISM ON ISM.CustomerGUID = ISM.CustomerGUID AND I.ItemID = ISM.ItemID
+			LEFT JOIN
+			    ItemStats S ON ISM.CustomerGUID = S.CustomerGUID AND ISM.ItemStatID = S.ItemStatID
+			WHERE
+			    I.CustomerGUID = @CustomerGUID AND I.ItemID = @ItemID";
+        #endregion
     }
 }

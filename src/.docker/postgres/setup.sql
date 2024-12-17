@@ -301,7 +301,6 @@ CREATE TABLE CharInventoryItems
     InSlotNumber          INT                            NOT NULL,
     Quantity              INT                            NOT NULL,
     NumberOfUsesLeft      INT  DEFAULT 0                 NOT NULL,
-    Condition             INT  DEFAULT 100               NOT NULL,
     CharInventoryItemGUID UUID DEFAULT gen_random_uuid() NOT NULL,
     CustomData            TEXT                           NULL,
     CONSTRAINT PK_CharInventoryItems
@@ -517,51 +516,91 @@ CREATE TABLE GlobalData
 
 CREATE TABLE Items
 (
-    CustomerGUID         UUID                          NOT NULL,
-    ItemID               SERIAL                        NOT NULL,
-    ItemTypeID           INT                           NOT NULL,
-    ItemName             VARCHAR(50)                   NOT NULL,
-    ItemWeight           DECIMAL(18, 2) DEFAULT 0      NOT NULL,
-    ItemCanStack         BOOLEAN            DEFAULT FALSE NOT NULL,
-    ItemStackSize        SMALLINT       DEFAULT 0      NOT NULL,
-    ItemIsUsable         BOOLEAN            DEFAULT FALSE NOT NULL,
-    ItemIsConsumedOnUse  BOOLEAN            DEFAULT TRUE NOT NULL,
-    CustomData           VARCHAR(2000)  DEFAULT ''     NOT NULL,
-    DefaultNumberOfUses  INT            DEFAULT 0      NOT NULL,
-    ItemValue            INT            DEFAULT 0      NOT NULL,
-    ItemMesh             VARCHAR(200)   DEFAULT ''     NOT NULL,
-    MeshToUseForPickup   VARCHAR(200)   DEFAULT ''     NOT NULL,
-    TextureToUseForIcon  VARCHAR(200)   DEFAULT ''     NOT NULL,
-    PremiumCurrencyPrice INT            DEFAULT 0      NOT NULL,
-    FreeCurrencyPrice    INT            DEFAULT 0      NOT NULL,
-    ItemTier             INT            DEFAULT 0      NOT NULL,
-    ItemDescription      TEXT           DEFAULT ''     NOT NULL,
-    ItemCode             VARCHAR(50)    DEFAULT ''     NOT NULL,
-    ItemDuration         INT            DEFAULT 0      NOT NULL,
-    CanBeDropped         BOOLEAN            DEFAULT TRUE NOT NULL,
-    CanBeDestroyed       BOOLEAN            DEFAULT FALSE NOT NULL,
-    WeaponActorClass     VARCHAR(200)   DEFAULT ''     NOT NULL,
-    StaticMesh           VARCHAR(200)   DEFAULT ''     NOT NULL,
-    SkeletalMesh         VARCHAR(200)   DEFAULT ''     NOT NULL,
-    ItemQuality          SMALLINT       DEFAULT 0      NOT NULL,
-    IconSlotWidth        INT            DEFAULT 1      NOT NULL,
-    IconSlotHeight       INT            DEFAULT 1      NOT NULL,
-    ItemMeshID           INT            DEFAULT 0      NOT NULL,
+    CustomerGUID            UUID                        NOT NULL,
+    ItemID                  SERIAL                      NOT NULL,
+    ItemName                VARCHAR(50)                 NOT NULL,
+    DisplayName             VARCHAR(50)                 NOT NULL,
+    DefaultVisualIdentity   VARCHAR(50)                 NOT NULL,
+    ItemWeight              DECIMAL(18, 2)   DEFAULT 0   NOT NULL,
+    ItemCanStack            BOOLEAN          DEFAULT FALSE NOT NULL,
+    ItemStackSize           SMALLINT         DEFAULT 0   NOT NULL,
+    Tradeable               BOOLEAN          DEFAULT TRUE  NOT NULL,
+    Examine                 TEXT                        NOT NULL,
+    Locked                  BOOLEAN          DEFAULT FALSE NOT NULL,
+    DecayItem               VARCHAR(50)                 NOT NULL,
+    BequethStats            BOOLEAN          DEFAULT FALSE NOT NULL,
+    ItemValue               INT             DEFAULT 0     NOT NULL,
+    ItemMesh                VARCHAR(200)   DEFAULT ''    NOT NULL,
+    MeshToUseForPickup      VARCHAR(200)   DEFAULT ''    NOT NULL,
+    TextureToUseForIcon     VARCHAR(200)   DEFAULT ''    NOT NULL,
+    ExtraDecals             VARCHAR(2000)  DEFAULT ''    NOT NULL,
+    PremiumCurrencyPrice    INT                         DEFAULT 0  NOT NULL,
+    FreeCurrencyPrice       INT                         DEFAULT 0  NOT NULL,
+    ItemTier                INT                         DEFAULT 0  NOT NULL,
+    ItemCode                VARCHAR(50)    DEFAULT ''    NOT NULL,
+    ItemDuration            INT                         DEFAULT 0  NOT NULL,
+    WeaponActorClass        VARCHAR(200)   DEFAULT ''    NOT NULL,
+    StaticMesh              VARCHAR(200)   DEFAULT ''    NOT NULL,
+    SkeletalMesh            VARCHAR(200)   DEFAULT ''    NOT NULL,
+    ItemQuality             SMALLINT        DEFAULT 0   NOT NULL,
+    IconSlotWidth           INT                         DEFAULT 1  NOT NULL,
+    IconSlotHeight          INT                         DEFAULT 1  NOT NULL,
+    ItemMeshID              INT                         DEFAULT 0  NOT NULL,
+    CustomData              VARCHAR(2000)  DEFAULT ''    NOT NULL,
     CONSTRAINT PK_Items
         PRIMARY KEY (CustomerGUID, ItemID)
 );
 
-CREATE TABLE ItemTypes
-(
-    CustomerGUID      UUID               NOT NULL,
-    ItemTypeID        SERIAL             NOT NULL,
-    ItemTypeDesc      VARCHAR(50)        NOT NULL,
-    UserItemType      SMALLINT DEFAULT 0 NOT NULL,
-    EquipmentType     SMALLINT DEFAULT 0 NOT NULL,
-    ItemQuality       SMALLINT DEFAULT 0 NOT NULL,
-    EquipmentSlotType SMALLINT DEFAULT 0 NOT NULL,
-    CONSTRAINT PK_ItemTypes
-        PRIMARY KEY (CustomerGUID, ItemTypeID)
+CREATE TABLE ItemActions (
+    CustomerGUID        UUID                NOT NULL,
+    ItemActionID        SERIAL              NOT NULL,
+    ActionName          VARCHAR(50)         NOT NULL,
+    CONSTRAINT PK_ItemActions
+        PRIMARY KEY (CustomerGUID, ItemActionID)
+);
+
+CREATE TABLE ItemActionMappings (
+    CustomerGUID            UUID                NOT NULL,
+    ItemID                  SERIAL              NOT NULL,
+    ItemActionID            SERIAL              NOT NULL,
+    PRIMARY KEY (CustomerGUID, ItemID, ItemActionID),
+    FOREIGN KEY (CustomerGUID, ItemID) REFERENCES Items(CustomerGUID, ItemID),
+    FOREIGN KEY (CustomerGUID, ItemActionID) REFERENCES ItemActions(CustomerGUID, ItemActionID)
+);
+
+CREATE TABLE ItemTags (
+    CustomerGUID        UUID            NOT NULL,
+    ItemTagID           SERIAL          NOT NULL,
+    TagName             VARCHAR(50)     NOT NULL,
+    CONSTRAINT PK_ItemTags
+        PRIMARY KEY (CustomerGUID, ItemTagID)
+);
+
+CREATE TABLE ItemTagMappings (
+    CustomerGUID            UUID            NOT NULL,
+    ItemID                  SERIAL          NOT NULL,
+    ItemTagID               SERIAL          NOT NULL,
+    PRIMARY KEY (CustomerGUID, ItemID, ItemTagID),
+    FOREIGN KEY (CustomerGUID, ItemID) REFERENCES Items(CustomerGUID, ItemID),
+    FOREIGN KEY (CustomerGUID, ItemTagID) REFERENCES ItemTags(CustomerGUID, ItemTagID)
+);
+
+CREATE TABLE ItemStats (
+    CustomerGUID        UUID            NOT NULL,
+    ItemStatID          SERIAL          NOT NULL,
+    StatName            VARCHAR(50)     NOT NULL,
+    CONSTRAINT PK_ItemStats
+      PRIMARY KEY (CustomerGUID, ItemStatID)
+);
+
+CREATE TABLE ItemStatMappings (
+    CustomerGUID            UUID            NOT NULL,
+    ItemID                  SERIAL          NOT NULL,
+    ItemStatID              SERIAL          NOT NULL,
+    StatValue               VARCHAR(50)     NOT NULL,
+    PRIMARY KEY (CustomerGUID, ItemID, ItemStatID),
+    FOREIGN KEY (CustomerGUID, ItemID) REFERENCES Items(CustomerGUID, ItemID),
+    FOREIGN KEY (CustomerGUID, ItemStatID) REFERENCES ItemStats(CustomerGUID, ItemStatID)
 );
 
 CREATE TABLE MapInstances
@@ -1294,6 +1333,10 @@ FROM Class CL
 WHERE CL.ClassID = _ClassID
   AND CL.CustomerGUID = _CustomerGUID;
 
+-- Add default character's inventory
+INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize)
+VALUES (_CustomerGUID, _CharacterID, 'Bag', 16);
+
 -- Get CharacterID
 _CharacterID := CURRVAL(PG_GET_SERIAL_SEQUENCE('characterdata', 'characterid'));
 
@@ -1310,69 +1353,54 @@ WHERE CD.CharacterID = _CharacterID;
 END
 $$;
 
+CREATE OR REPLACE FUNCTION ValidateItemExistence(_CustomerGUID UUID, _ItemID INT)
+       RETURNS BOOLEAN AS $$
+       DECLARE
+       _Count INT;
+       BEGIN SELECT COUNT(1) 
+             INTO _Count
+             FROM Items
+             WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+RETURN _Count > 0;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE AddCharacterToMapInstanceByCharName(
-    _CustomerGUID UUID,
-    _CharacterName VARCHAR(50),
-    _MapInstanceID INT
-)
-LANGUAGE PLPGSQL
-AS
-$$
-DECLARE
-_CharacterID INT;
-    _ZoneName    VARCHAR(50);
-BEGIN
-    -- Log the start of the procedure
-INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (NOW(), 'AddCharacterToMapInstanceByCharName: Started', _CustomerGUID);
+CREATE OR REPLACE FUNCTION ValidateInventoryCapacity(_CustomerGUID UUID, _CharInventoryID INT)
+       RETURNS BOOLEAN AS $$
+       DECLARE
+       _InventorySize INT;
+       _CurrentItemCount INT;
+                          BEGIN SELECT InventorySize
+                                INTO _InventorySize
+                                FROM CharInventory
+                                WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID;
 
--- Get the CharacterID for the provided CharacterName and CustomerGUID
-SELECT CharacterID
-INTO _CharacterID
-FROM CharacterData C
-WHERE C.CharacterName = _CharacterName
-  AND C.CustomerGUID = _CustomerGUID;
+SELECT COUNT(1)
+INTO _CurrentItemCount
+FROM CharInventoryItems
+WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID;
 
--- Proceed only if a valid CharacterID is found
-IF (COALESCE(_CharacterID, 0) > 0) THEN
-        -- Remove the character from any existing map instances
-DELETE FROM CharOnMapInstance
-WHERE CharacterID = _CharacterID
-  AND CustomerGUID = _CustomerGUID;
+RETURN _CurrentItemCount < _InventorySize;
+END;
+$$ LANGUAGE plpgsql;
 
--- Log the addition of the character to the new map instance
-INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-VALUES (
-           NOW(),
-           'AddCharacterToMapInstanceByCharName: CustomerGUID=' || _CustomerGUID || ', MapInstanceID=' || _MapInstanceID || ', CharacterID=' || _CharacterID,
-           _CustomerGUID
-       );
+CREATE OR REPLACE FUNCTION FindStackableSlot(_CustomerGUID UUID, _CharInventoryID INT, _ItemID INT)
+       RETURNS INT AS $$
+       DECLARE
+       _SlotNumber INT;
+       BEGIN SELECT InSlotNumber 
+             INTO _SlotNumber
+             FROM CharInventoryItems ci
+                 JOIN Items i ON ci.CustomerGUID = i.CustomerGUID AND ci.ItemID = i.ItemID
+             WHERE ci.CustomerGUID = _CustomerGUID
+               AND ci.CharInventoryID = _CharInventoryID
+               AND ci.ItemID = _ItemID
+               AND i.ItemCanStack = TRUE
+                 LIMIT 1;
 
--- Add the character to the new map instance
-INSERT INTO CharOnMapInstance (CustomerGUID, MapInstanceID, CharacterID)
-VALUES (_CustomerGUID, _MapInstanceID, _CharacterID);
-
--- Retrieve the ZoneName associated with the provided MapInstanceID
-SELECT M.ZoneName
-INTO _ZoneName
-FROM Maps M
-         INNER JOIN MapInstances MI
-                    ON MI.CustomerGUID = M.CustomerGUID AND MI.MapID = M.MapID
-WHERE MI.MapInstanceID = _MapInstanceID;
-
--- Update the character's MapName to reflect the new zone
-UPDATE CharacterData
-SET MapName = _ZoneName
-WHERE CharacterID = _CharacterID
-  AND CustomerGUID = _CustomerGUID;
-ELSE
-        -- Log an error if no valid CharacterID was found
-        INSERT INTO DebugLog (DebugDate, DebugDesc, CustomerGUID)
-        VALUES (NOW(), 'AddCharacterToMapInstanceByCharName: Character not found - ' || _CharacterName, _CustomerGUID);
-END IF;
-END
-$$;
+RETURN COALESCE(_SlotNumber, -1);
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE AddOrUpdateCustomCharData(_CustomerGUID UUID,
                                                       _CharacterName VARCHAR(50),
@@ -3409,6 +3437,199 @@ ADD ZoneServerGUID UUID NULL;
 ALTER TABLE WorldServers
 ADD CONSTRAINT AK_ZoneServers UNIQUE (CustomerGUID, ZoneServerGUID);
 
+CREATE OR REPLACE PROCEDURE AddItem(
+    -- Item fields
+    _CustomerGUID UUID,
+    _ItemName VARCHAR(50),
+    _DisplayName VARCHAR(50),
+    _DefaultVisualIdentity VARCHAR(50),
+    _ItemWeight DECIMAL(18, 2),
+    _ItemCanStack BOOLEAN,
+    _ItemStackSize SMALLINT,
+    _Tradeable BOOLEAN,
+    _Examine TEXT,
+    _Locked BOOLEAN,
+    _DecayItem VARCHAR(50),
+    _BequethStats BOOLEAN,
+    _ItemValue INT,
+    _ItemMesh VARCHAR(200),
+    _MeshToUseForPickup VARCHAR(200),
+    _TextureToUseForIcon VARCHAR(200),
+    _ExtraDecals VARCHAR(2000),
+    _PremiumCurrencyPrice INT,
+    _FreeCurrencyPrice INT,
+    _ItemTier INT,
+    _ItemCode VARCHAR(50),
+    _ItemDuration INT,
+    _WeaponActorClass VARCHAR(200),
+    _StaticMesh VARCHAR(200),
+    _SkeletalMesh VARCHAR(200),
+    _ItemQuality SMALLINT,
+    _IconSlotWidth INT,
+    _IconSlotHeight INT,
+    _ItemMeshID INT,
+    _CustomData VARCHAR(2000),
+
+    -- Mappings input arrays
+    _ActionIDs INT[],
+    _TagIDs INT[],
+    _StatIDs INT[],
+    _StatValues VARCHAR[]
+)
+LANGUAGE PLPGSQL
+AS $$
+DECLARE
+_NewItemID INT;
+    i INT;
+BEGIN
+    -- Check if item already exists
+    IF EXISTS (
+        SELECT 1 FROM Items
+        WHERE CustomerGUID = _CustomerGUID AND ItemName = _ItemName
+    ) THEN
+        RAISE EXCEPTION 'Item with name % already exists for this CustomerGUID', _ItemName;
+END IF;
+
+    -- Insert new item
+INSERT INTO Items (
+    CustomerGUID, ItemName, DisplayName, DefaultVisualIdentity,
+    ItemWeight, ItemCanStack, ItemStackSize, Tradeable, Examine, Locked,
+    DecayItem, BequethStats, ItemValue, ItemMesh, MeshToUseForPickup,
+    TextureToUseForIcon, ExtraDecals, PremiumCurrencyPrice, FreeCurrencyPrice,
+    ItemTier, ItemCode, ItemDuration, WeaponActorClass, StaticMesh,
+    SkeletalMesh, ItemQuality, IconSlotWidth, IconSlotHeight, ItemMeshID, CustomData
+)
+VALUES (
+           _CustomerGUID, _ItemName, _DisplayName, _DefaultVisualIdentity,
+           _ItemWeight, _ItemCanStack, _ItemStackSize, _Tradeable, _Examine, _Locked,
+           _DecayItem, _BequethStats, _ItemValue, _ItemMesh, _MeshToUseForPickup,
+           _TextureToUseForIcon, _ExtraDecals, _PremiumCurrencyPrice, _FreeCurrencyPrice,
+           _ItemTier, _ItemCode, _ItemDuration, _WeaponActorClass, _StaticMesh,
+           _SkeletalMesh, _ItemQuality, _IconSlotWidth, _IconSlotHeight, _ItemMeshID, _CustomData
+       )
+    RETURNING ItemID INTO _NewItemID;
+
+-- Insert Action Mappings
+IF _ActionIDs IS NOT NULL THEN
+        FOREACH i IN ARRAY _ActionIDs
+        LOOP
+            INSERT INTO ItemActionMappings (CustomerGUID, ItemID, ItemActionID)
+            VALUES (_CustomerGUID, _NewItemID, i);
+END LOOP;
+END IF;
+
+    -- Insert Tag Mappings
+    IF _TagIDs IS NOT NULL THEN
+        FOREACH i IN ARRAY _TagIDs
+        LOOP
+            INSERT INTO ItemTagMappings (CustomerGUID, ItemID, ItemTagID)
+            VALUES (_CustomerGUID, _NewItemID, i);
+END LOOP;
+END IF;
+
+    -- Insert Stat Mappings
+    IF _StatIDs IS NOT NULL AND _StatValues IS NOT NULL THEN
+        FOR i IN 1..array_length(_StatIDs, 1)
+        LOOP
+            INSERT INTO ItemStatMappings (CustomerGUID, ItemID, ItemStatID, StatValue)
+            VALUES (_CustomerGUID, _NewItemID, _StatIDs[i], _StatValues[i]);
+END LOOP;
+END IF;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE UpdateItem(
+    -- Item fields
+    _CustomerGUID UUID,
+    _ItemID INT,
+    _ItemName VARCHAR(50),
+    _DisplayName VARCHAR(50),
+    _ItemWeight DECIMAL(18, 2),
+    _ItemStackSize SMALLINT,
+    -- Mappings input arrays
+    _ActionIDs INT[],
+    _TagIDs INT[],
+    _StatIDs INT[],
+    _StatValues VARCHAR[]
+)
+LANGUAGE PLPGSQL
+AS $$
+DECLARE
+i INT;
+BEGIN
+    -- Check if item exists
+    IF NOT EXISTS (
+        SELECT 1 FROM Items WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID
+    ) THEN
+        RAISE EXCEPTION 'Item with ID % does not exist', _ItemID;
+END IF;
+
+    -- Update item fields
+UPDATE Items
+SET ItemName = _ItemName,
+    DisplayName = _DisplayName,
+    ItemWeight = _ItemWeight,
+    ItemStackSize = _ItemStackSize
+WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+
+-- Clear existing mappings
+DELETE FROM ItemActionMappings WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+DELETE FROM ItemTagMappings WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+DELETE FROM ItemStatMappings WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+
+-- Insert new Action Mappings
+IF _ActionIDs IS NOT NULL THEN
+        FOREACH i IN ARRAY _ActionIDs
+        LOOP
+            INSERT INTO ItemActionMappings (CustomerGUID, ItemID, ItemActionID)
+            VALUES (_CustomerGUID, _ItemID, i);
+END LOOP;
+END IF;
+
+    -- Insert new Tag Mappings
+    IF _TagIDs IS NOT NULL THEN
+        FOREACH i IN ARRAY _TagIDs
+        LOOP
+            INSERT INTO ItemTagMappings (CustomerGUID, ItemID, ItemTagID)
+            VALUES (_CustomerGUID, _ItemID, i);
+END LOOP;
+END IF;
+
+    -- Insert new Stat Mappings
+    IF _StatIDs IS NOT NULL AND _StatValues IS NOT NULL THEN
+        FOR i IN 1..array_length(_StatIDs, 1)
+        LOOP
+            INSERT INTO ItemStatMappings (CustomerGUID, ItemID, ItemStatID, StatValue)
+            VALUES (_CustomerGUID, _ItemID, _StatIDs[i], _StatValues[i]);
+END LOOP;
+END IF;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE DeleteItem(
+    _CustomerGUID UUID,
+    _ItemID INT
+)
+LANGUAGE PLPGSQL
+AS $$
+BEGIN
+    -- Check if item exists
+    IF NOT EXISTS (
+        SELECT 1 FROM Items WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID
+    ) THEN
+        RAISE EXCEPTION 'Item with ID % does not exist for CustomerGUID %', _ItemID, _CustomerGUID;
+END IF;
+
+    -- Delete related mappings
+DELETE FROM ItemActionMappings WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+DELETE FROM ItemTagMappings WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+DELETE FROM ItemStatMappings WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+
+-- Delete the item
+DELETE FROM Items
+WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+END;
+$$;
 
 CREATE OR REPLACE PROCEDURE AddOrUpdateAbility(_CustomerGUID UUID,
                                                _AbilityID INT,
@@ -3581,6 +3802,110 @@ FROM AddAccount(
      )
     INTO _AccountID;
 
+-- Insert default item actions
+    INSERT INTO ItemActions (CustomerGUID, ActionName)
+    VALUES
+        (_CustomerGUID, 'Drop'),
+        (_CustomerGUID, 'Use'),
+        (_CustomerGUID, 'Equip'),
+        (_CustomerGUID, 'Delete'),
+        (_CustomerGUID, 'Examine'),
+        (_CustomerGUID, 'Click'),
+        (_CustomerGUID, 'Craft'),
+        (_CustomerGUID, 'Select'),
+        (_CustomerGUID, 'Eat'),
+        (_CustomerGUID, 'Take'),
+        (_CustomerGUID, 'Add'),
+        (_CustomerGUID, 'Nothing'),
+        (_CustomerGUID, 'Place'),
+        (_CustomerGUID, 'Remove Bait'),
+        (_CustomerGUID, 'Offer Item'),
+        (_CustomerGUID, 'Offer 5'),
+        (_CustomerGUID, 'Offer 10'),
+        (_CustomerGUID, 'Offer All'),
+        (_CustomerGUID, 'Reclaim'),
+        (_CustomerGUID, 'Return'),
+        (_CustomerGUID, 'Unequip'),
+        (_CustomerGUID, 'Drink');
+
+-- Insert default item tags
+    INSERT INTO ItemTags (CustomerGUID, TagName)
+        VALUES
+        (_CustomerGUID, 'RawShellfish'),
+        (_CustomerGUID, 'RawFish'),
+        (_CustomerGUID, 'FreshwaterFish'),
+        (_CustomerGUID, 'SaltwaterFish'),
+        (_CustomerGUID, 'BrackishwaterFish'),
+        (_CustomerGUID, 'FishingTool'),
+        (_CustomerGUID, 'FishingBait'),
+        (_CustomerGUID, 'Net'),
+        (_CustomerGUID, 'Log'),
+        (_CustomerGUID, 'Softwood'),
+        (_CustomerGUID, 'Ingredient'),
+        (_CustomerGUID, 'Food'),
+        (_CustomerGUID, 'Soup'),
+        (_CustomerGUID, 'Pottage'),
+        (_CustomerGUID, 'SoupBase'),
+        (_CustomerGUID, 'Bowl'),
+        (_CustomerGUID, 'CookedMeat'),
+        (_CustomerGUID, 'RawMeat'),
+        (_CustomerGUID, 'RawBeef'),
+        (_CustomerGUID, 'RawPork'),
+        (_CustomerGUID, 'RawLamb'),
+        (_CustomerGUID, 'Vegetable'),
+        (_CustomerGUID, 'RootVegetable'),
+        (_CustomerGUID, 'Pork'),
+        (_CustomerGUID, 'Beef'),
+        (_CustomerGUID, 'Lamb'),
+        (_CustomerGUID, 'AnimalFat'),
+        (_CustomerGUID, 'Stew'),
+        (_CustomerGUID, 'BeefFat'),
+        (_CustomerGUID, 'Spice'),
+        (_CustomerGUID, 'Herb'),
+        (_CustomerGUID, 'CookingFuel'),
+        (_CustomerGUID, 'Flour'),
+        (_CustomerGUID, 'Bread'),
+        (_CustomerGUID, 'Dairy'),
+        (_CustomerGUID, 'None'),
+        (_CustomerGUID, 'Currency'),
+        (_CustomerGUID, 'HelmetSlot'),
+        (_CustomerGUID, 'ChestSlot'),
+        (_CustomerGUID, 'LegsSlot'),
+        (_CustomerGUID, 'GlovesSlot'),
+        (_CustomerGUID, 'BootsSlot'),
+        (_CustomerGUID, 'WeaponSlot'),
+        (_CustomerGUID, 'Ore'),
+        (_CustomerGUID, 'Fruit'),
+        (_CustomerGUID, 'Berry'),
+        (_CustomerGUID, 'Milk'),
+        (_CustomerGUID, 'Egg'),
+        (_CustomerGUID, 'Pie'),
+        (_CustomerGUID, 'GameMeat'),
+        (_CustomerGUID, 'GameBird'),
+        (_CustomerGUID, 'StoneFruit'),
+        (_CustomerGUID, 'RawGameMeat'),
+        (_CustomerGUID, 'RawGameBird'),
+        (_CustomerGUID, 'CookedFish'),
+        (_CustomerGUID, 'CookedShellFish');
+
+-- Insert default item stats
+    INSERT INTO ItemStats (CustomerGUID, StatName)
+        VALUES
+        (_CustomerGUID, 'PasteBait'),
+        (_CustomerGUID, 'WormBait'),
+        (_CustomerGUID, 'CrabBait'),
+        (_CustomerGUID, 'ShrimpBait'),
+        (_CustomerGUID, 'MinnowBait'),
+        (_CustomerGUID, 'FlyBait'),
+        (_CustomerGUID, 'Size'),
+        (_CustomerGUID, 'Flavor'),
+        (_CustomerGUID, 'Heal'),
+        (_CustomerGUID, 'FoodPrefix'),
+        (_CustomerGUID, 'EatTime'),
+        (_CustomerGUID, 'DecalSorrelSalmon'),
+        (_CustomerGUID, 'DecalSoupStewBread'),
+        (_CustomerGUID, 'Purity');
+
 -- Insert default maps
 INSERT INTO Maps (CustomerGUID, MapName, ZoneName, MapData, Width, Height)
 VALUES
@@ -3590,7 +3915,6 @@ VALUES
     (_CustomerGUID, 'FourZoneMap', 'Zone1', NULL, 1, 1),
     (_CustomerGUID, 'FourZoneMap', 'Zone2', NULL, 1, 1);
 
--- Insert a default class
 -- Insert a default class
 INSERT INTO Class (CustomerGUID, ClassName, StartingMapName, X, Y, Z, RX, RY, RZ, TeamNumber, Thirst, Hunger, Gold, Score,
                    CharacterLevel, Gender, XP, HitDie, Wounds, Size, Weight, MaxHealth, Health, HealthRegenRate, MaxMana, Mana,
@@ -3825,5 +4149,110 @@ BEGIN
     RETURN QUERY SELECT * FROM temp_table;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION AddItemToInventory(
+    _CustomerGUID UUID,
+    _CharInventoryID INT,
+    _ItemID INT,
+    _Quantity INT
+)
+RETURNS TABLE(item_id INT, remaining_quantity INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _ItemExists BOOLEAN;
+    _StackableSlot INT;
+    _ItemCanStack BOOLEAN;
+    _StackSize INT;
+    _CurrentQuantity INT;
+    _SlotToUse INT;
+    _RemainingQuantity INT;
+BEGIN
+    -- 1. Validate if the item exists
+    _ItemExists := ValidateItemExistence(_CustomerGUID, _ItemID);
+    IF NOT _ItemExists THEN
+        RAISE EXCEPTION 'Item does not exist for ItemID: %', _ItemID;
+    END IF;
+
+    -- 2. Check if item is stackable
+    SELECT ItemCanStack, ItemStackSize INTO _ItemCanStack, _StackSize
+    FROM Items
+    WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+
+    -- Initialize remaining quantity to the provided quantity
+    _RemainingQuantity := _Quantity;
+
+    -- 3. Process stackable items
+    IF _ItemCanStack THEN
+        FOR _StackableSlot IN
+            SELECT InSlotNumber
+            FROM CharInventoryItems
+            WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID AND ItemID = _ItemID
+            ORDER BY InSlotNumber
+        LOOP
+            SELECT Quantity INTO _CurrentQuantity
+            FROM CharInventoryItems
+            WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID AND InSlotNumber = _StackableSlot;
+
+            IF _CurrentQuantity < _StackSize THEN
+                IF _CurrentQuantity + _RemainingQuantity <= _StackSize THEN
+                    -- Fully add remaining quantity to the current slot
+                    UPDATE CharInventoryItems
+                    SET Quantity = Quantity + _RemainingQuantity
+                    WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID AND InSlotNumber = _StackableSlot;
+                    RETURN QUERY SELECT _ItemID, 0;
+                    ELSE
+                                        -- Partially fill the current slot to the max stack size
+                    UPDATE CharInventoryItems
+                    SET Quantity = _StackSize
+                    WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID AND InSlotNumber = _StackableSlot;
+
+                    -- Reduce remaining quantity
+                    _RemainingQuantity := _RemainingQuantity - (_StackSize - _CurrentQuantity);
+                END IF;
+            END IF;
+        END LOOP;
+    END IF;
+
+    -- 4. Find an empty slot if remaining quantity exists
+    WHILE _RemainingQuantity > 0 LOOP
+        SELECT COALESCE(MIN(InSlotNumber), -1) INTO _SlotToUse
+        FROM (
+            SELECT generate_series(1, (SELECT InventorySize FROM CharInventory WHERE CharInventoryID = _CharInventoryID)) AS InSlotNumber
+        ) t
+        WHERE InSlotNumber NOT IN (
+            SELECT InSlotNumber
+            FROM CharInventoryItems
+            WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID
+        );
+
+        IF _SlotToUse = -1 THEN
+            -- No empty slots available, exit and return remaining quantity
+            RETURN QUERY SELECT _ItemID, _RemainingQuantity;
+        END IF;
+
+        IF _RemainingQuantity <= _StackSize THEN
+            -- Add remaining quantity to a new slot
+            INSERT INTO CharInventoryItems (
+                CustomerGUID, CharInventoryID, ItemID, InSlotNumber, Quantity
+            ) VALUES (
+                _CustomerGUID, _CharInventoryID, _ItemID, _SlotToUse, _RemainingQuantity
+            );
+            RETURN QUERY SELECT _ItemID, 0;
+        ELSE
+            -- Add max stack size to the new slot and reduce remaining quantity
+            INSERT INTO CharInventoryItems (
+                CustomerGUID, CharInventoryID, ItemID, InSlotNumber, Quantity
+            ) VALUES (
+                _CustomerGUID, _CharInventoryID, _ItemID, _SlotToUse, _StackSize
+            );
+            _RemainingQuantity := _RemainingQuantity - _StackSize;
+        END IF;
+    END LOOP;
+
+    RETURN QUERY SELECT _ItemID, 0;
+END;
+$$;
+
 
 INSERT INTO OWSVersion (OWSDBVersion) VALUES('20230304');

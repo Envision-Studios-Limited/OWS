@@ -600,5 +600,39 @@ namespace OWSData.Repositories.Implementations.Postgres
                 await Connection.ExecuteAsync(PostgresQueries.UpdateAbilityOnCharacter, parameters);
             }
         }
+
+        public async Task<AddItemToInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity)
+        {
+            var result = new AddItemToInventoryResult();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharacterInventoryID", characterInventoryID);
+                    p.Add("@ItemID", itemId);
+                    p.Add("@ItemQuantity", itemQuantity);
+
+                    // Call the PostgreSQL function
+                    var queryResult = await Connection.QueryAsync<AddItemToInventoryResult.ItemResult>(
+                        "SELECT * FROM AddItemToInventory(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity)",
+                        p,
+                        commandType: CommandType.Text);
+
+                    result.Items = queryResult.ToList();
+                    result.Success = true;
+                    result.ErrorMessage = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.ErrorMessage = ex.Message;
+            }
+
+            return result;
+        }
     }
 }

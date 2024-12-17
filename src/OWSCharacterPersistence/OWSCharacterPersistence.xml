@@ -102,6 +102,36 @@
             <b>CharHasAbilitiesCustomJSON</b> - This field is used to store Custom JSON for the specific instance of this Ability.  If you have a system where each ability on a character has some kind of custom variation, then this is where to store that variation data.  In a system where an ability operates the same on every player, this field would not be used.  Don't store Ability Level in this field, as there is already a field for that.  If you need to store Custom JSON for ALL instances of an ability, use the Custom JSON on the Ability itself.
             </param>
         </member>
+        <!-- Badly formed XML comment ignored for member "T:OWSCharacterPersistence.Controllers.InventoriesController" -->
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.#ctor(OWSData.Repositories.Interfaces.ICharactersRepository,OWSShared.Interfaces.IHeaderCustomerGUID)">
+            <summary>
+            Constructor for Inventory related API calls.
+            </summary>
+            <remarks>
+            All dependencies are injected.
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
+            <summary>
+            OnActionExecuting override
+            </summary>
+            <remarks>
+            Checks for an empty IHeaderCustomerGUID.
+            </remarks>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.AddItemToInventory(OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest)">
+            <summary>
+            Add Item to Inventory
+            </summary>
+            <remarks>
+            Adds an Item to an Inventory
+            </remarks>
+            <param name="request">
+            <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+            <b>ItemID</b> - This is the ID of item.<br/>
+            <b>ItemQuantity</b> - This is the number of item to add.<br/>
+            </param>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -292,6 +322,38 @@
             </summary>
             <remarks>
             This is the name of the character to get Custom Data fields for.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest">
+            <summary>
+            Add Item To Inventory
+            </summary>
+            <remarks>
+            Adds an item to Character's inventory
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest.CharacterInventoryID">
+            <summary>
+            Character Inventory ID
+            </summary>
+            <remarks>
+            This is the ID of character's inventory to be inserted an item
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest.ItemID">
+            <summary>
+            Item ID
+            </summary>
+            <remarks>
+            This is the ID of item
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest.ItemQuantity">
+            <summary>
+            Item Quantity
+            </summary>
+            <remarks>
+            This is the number of item to add
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Statuses.GetCharacterStatusesRequest">
