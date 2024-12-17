@@ -29,5 +29,6 @@ namespace OWSData.Repositories.Interfaces
         Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName);
         Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON);
         Task<AddItemToInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity);
+        Task<AddItemToInventoryResult> AddItemToInventoryByIndex(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity, int slotIndex);
     }
 }

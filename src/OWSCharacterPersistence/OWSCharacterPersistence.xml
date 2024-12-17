@@ -119,6 +119,20 @@
             Checks for an empty IHeaderCustomerGUID.
             </remarks>
         </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.AddItemToInventoryByIndex(OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryByIndexRequest)">
+            <summary>
+            Add Item to Inventory By index
+            </summary>
+            <remarks>
+            Adds an Item to an Inventory by index
+            </remarks>
+            <param name="request">
+            <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+            <b>ItemID</b> - This is the ID of item.<br/>
+            <b>ItemQuantity</b> - This is the number of item to add.<br/>
+            <b>SlotIndex</b> - This is the slot index number of inventory.<br/>
+            </param>
+        </member>
         <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.AddItemToInventory(OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest)">
             <summary>
             Add Item to Inventory
@@ -322,6 +336,46 @@
             </summary>
             <remarks>
             This is the name of the character to get Custom Data fields for.
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryByIndexRequest">
+            <summary>
+            Add Item To Inventory
+            </summary>
+            <remarks>
+            Adds an item to Character's inventory
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryByIndexRequest.CharacterInventoryID">
+            <summary>
+            Character Inventory ID
+            </summary>
+            <remarks>
+            This is the ID of character's inventory to be inserted an item
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryByIndexRequest.ItemID">
+            <summary>
+            Item ID
+            </summary>
+            <remarks>
+            This is the ID of item
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryByIndexRequest.ItemQuantity">
+            <summary>
+            Item Quantity
+            </summary>
+            <remarks>
+            This is the number of item to add
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryByIndexRequest.SlotIndex">
+            <summary>
+            Slot Index
+            </summary>
+            <remarks>
+            This is the slot index number of inventory
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest">

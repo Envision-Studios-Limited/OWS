@@ -50,6 +50,27 @@ namespace OWSCharacterPersistence.Controllers
         }
         
         /// <summary>
+        /// Add Item to Inventory By index
+        /// </summary>
+        /// <remarks>
+        /// Adds an Item to an Inventory by index
+        /// </remarks>
+        /// <param name="request">
+        /// <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+        /// <b>ItemID</b> - This is the ID of item.<br/>
+        /// <b>ItemQuantity</b> - This is the number of item to add.<br/>
+        /// <b>SlotIndex</b> - This is the slot index number of inventory.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("AddItemToInventoryByIndex")]
+        [Produces(typeof(AddItemToInventoryResult))]
+        public async Task<AddItemToInventoryResult> AddItemToInventoryByIndex([FromBody] AddItemToInventoryByIndexRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+        
+        /// <summary>
         /// Add Item to Inventory
         /// </summary>
         /// <remarks>
