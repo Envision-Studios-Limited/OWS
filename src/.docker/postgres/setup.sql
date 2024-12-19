@@ -4264,7 +4264,7 @@ RETURNS TABLE(item_id INT, remaining_quantity INT)
 LANGUAGE plpgsql
 AS $$
 DECLARE
-_ItemExists BOOLEAN;
+    _ItemExists BOOLEAN;
     _ItemCanStack BOOLEAN;
     _StackSize INT;
     _CurrentQuantity INT;
@@ -4277,58 +4277,64 @@ BEGIN
     _ItemExists := ValidateItemExistence(_CustomerGUID, _ItemID);
     IF NOT _ItemExists THEN
         RAISE EXCEPTION 'Item does not exist for ItemID: %', _ItemID;
-END IF;
+    END IF;
 
     -- 2. Check if the slot index is valid
-SELECT InventorySize INTO _InventorySize
-FROM CharInventory
-WHERE CharInventoryID = _CharInventoryID;
+    SELECT InventorySize INTO _InventorySize
+    FROM CharInventory
+    WHERE CharInventoryID = _CharInventoryID;
 
-IF _SlotIndex < 0 OR _SlotIndex >= _InventorySize THEN
-        RAISE EXCEPTION 'Invalid slot index: %. Must be between 0 and %.', _SlotIndex, _InventorySize - 1;
-END IF;
+    IF _SlotIndex < 0 OR _SlotIndex >= _InventorySize THEN
+            RAISE EXCEPTION 'Invalid slot index: %. Must be between 0 and %.', _SlotIndex, _InventorySize - 1;
+    END IF;
 
     -- 3. Check if the slot is occupied and the item in the slot
-SELECT ItemID, Quantity INTO _ExistingItemID, _CurrentQuantity
-FROM CharInventoryItems
-WHERE CustomerGUID = _CustomerGUID
-  AND CharInventoryID = _CharInventoryID
-  AND InSlotNumber = _SlotIndex;
+    SELECT ItemID, Quantity INTO _ExistingItemID, _CurrentQuantity
+    FROM CharInventoryItems
+    WHERE CustomerGUID = _CustomerGUID
+      AND CharInventoryID = _CharInventoryID
+      AND InSlotNumber = _SlotIndex;
 
-IF FOUND THEN
+    IF FOUND THEN
         -- Slot is occupied; check if it's the same item
         IF _ExistingItemID = _ItemID THEN
             -- Stackable logic for the same item
-SELECT ItemCanStack, ItemStackSize INTO _ItemCanStack, _StackSize
-FROM Items
-WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
+            SELECT ItemCanStack, ItemStackSize INTO _ItemCanStack, _StackSize
+            FROM Items
+            WHERE CustomerGUID = _CustomerGUID AND ItemID = _ItemID;
 
-IF NOT _ItemCanStack THEN
-                RAISE EXCEPTION 'Slot % is occupied by a non-stackable item.', _SlotIndex;
-END IF;
+        IF NOT _ItemCanStack THEN
+                        RAISE EXCEPTION 'Slot % is occupied by a non-stackable item.', _SlotIndex;
+        END IF;
 
-            IF _CurrentQuantity < _StackSize THEN
-                -- Calculate how much can be added
-                IF _CurrentQuantity + _Quantity <= _StackSize THEN
-UPDATE CharInventoryItems
-SET Quantity = Quantity + _Quantity
-WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID AND InSlotNumber = _SlotIndex;
+        IF _CurrentQuantity < _StackSize THEN
+            -- Calculate how much can be added
+            IF _CurrentQuantity + _Quantity <= _StackSize THEN
+                UPDATE CharInventoryItems
+                SET Quantity = Quantity + _Quantity
+                WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID AND InSlotNumber = _SlotIndex;
 
-_RemainingQuantity := 0;
-ELSE
-UPDATE CharInventoryItems
-SET Quantity = _StackSize
-WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID AND InSlotNumber = _SlotIndex;
+                _RemainingQuantity := 0;
+            ELSE
+                UPDATE CharInventoryItems
+                SET Quantity = _StackSize
+                WHERE CustomerGUID = _CustomerGUID AND CharInventoryID = _CharInventoryID AND InSlotNumber = _SlotIndex;
 
-_RemainingQuantity := _Quantity - (_StackSize - _CurrentQuantity);
-END IF;
-
-RETURN QUERY SELECT _ItemID, _RemainingQuantity;
-ELSE
+                _RemainingQuantity := _Quantity - (_StackSize - _CurrentQuantity);
+            END IF;
+                
+                -- 5. Return rows only if remaining quantity is greater than 0
+                IF _RemainingQuantity > 0 THEN
+                    RETURN QUERY SELECT _ItemID, _RemainingQuantity;
+                END IF;
+                
+                RETURN;
+            ELSE
                 -- Slot is already at max capacity
                 RETURN QUERY SELECT _ItemID, _Quantity;
-END IF;
-ELSE
+                RETURN;
+        END IF;
+    ELSE
             -- Slot is occupied by a different item
             RAISE EXCEPTION 'Slot % is occupied by a different item.', _SlotIndex;
 END IF;
@@ -4349,15 +4355,15 @@ _RemainingQuantity := _Quantity;
                 _CustomerGUID, _CharInventoryID, _ItemID, _SlotIndex, _Quantity
             );
             _RemainingQuantity := 0;
-ELSE
+        ELSE
             INSERT INTO CharInventoryItems (
                 CustomerGUID, CharInventoryID, ItemID, InSlotNumber, Quantity
             ) VALUES (
                 _CustomerGUID, _CharInventoryID, _ItemID, _SlotIndex, _StackSize
             );
             _RemainingQuantity := _Quantity - _StackSize;
-END IF;
-ELSE
+        END IF;
+    ELSE
         -- Non-stackable item
         IF _Quantity = 1 THEN
             INSERT INTO CharInventoryItems (
@@ -4366,13 +4372,17 @@ ELSE
                 _CustomerGUID, _CharInventoryID, _ItemID, _SlotIndex, 1
             );
             _RemainingQuantity := 0;
-ELSE
+        ELSE
             RAISE EXCEPTION 'Non-stackable items must have a quantity of 1. Provided: %.', _Quantity;
-END IF;
+    END IF;
 END IF;
 
     -- 5. Return remaining quantity (if any)
-RETURN QUERY SELECT _ItemID, _RemainingQuantity;
+    IF _RemainingQuantity > 0 THEN
+       RETURN QUERY SELECT _ItemID, _RemainingQuantity;
+    END IF;
+    
+    RETURN;
 END;
 $$;
 

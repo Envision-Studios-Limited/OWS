@@ -59,7 +59,7 @@ public class AddItemToInventoryByIndexRequest
     public async Task<AddItemToInventoryResult> Handle()
     {
         output = new AddItemToInventoryResult();
-        output = await charactersRepository.AddItemToInventory(customerGUID, CharacterInventoryID, ItemID, ItemQuantity);
+        output = await charactersRepository.AddItemToInventoryByIndex(customerGUID, CharacterInventoryID, ItemID, ItemQuantity, SlotIndex);
         
         return output;
     }
