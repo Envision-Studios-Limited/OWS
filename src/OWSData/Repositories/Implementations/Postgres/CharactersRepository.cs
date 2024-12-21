@@ -602,7 +602,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             }
         }
 
-        public async Task<AddItemInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity)
+        public async Task<AddItemInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity, string customData)
         {
             var result = new AddItemInventoryResult();
 
@@ -615,10 +615,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@CharacterInventoryID", characterInventoryID);
                     p.Add("@ItemID", itemId);
                     p.Add("@ItemQuantity", itemQuantity);
+                    p.Add("@CustomData", customData);
 
                     // Call the PostgreSQL function
                     var queryResult = await Connection.QueryAsync<ItemResult>(
-                        "SELECT * FROM AddItemToInventory(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity)",
+                        "SELECT * FROM AddItemToInventory(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity, @CustomData)",
                         p,
                         commandType: CommandType.Text);
 
@@ -636,7 +637,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             return result;
         }
 
-        public async Task<AddItemInventoryResult> AddItemToInventoryByIndex(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity, int slotIndex)
+        public async Task<AddItemInventoryResult> AddItemToInventoryByIndex(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity, int slotIndex, string customData)
         {
             var result = new AddItemInventoryResult();
 
@@ -650,10 +651,11 @@ namespace OWSData.Repositories.Implementations.Postgres
                     p.Add("@ItemID", itemId);
                     p.Add("@ItemQuantity", itemQuantity);
                     p.Add("@SlotIndex", slotIndex);
+                    p.Add("@CustomData", customData);
 
                     // Call the PostgreSQL function
                     var queryResult = await Connection.QueryAsync<ItemResult>(
-                        "SELECT * FROM AddItemToInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity, @SlotIndex)",
+                        "SELECT * FROM AddItemToInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity, @SlotIndex, @CustomData)",
                         p,
                         commandType: CommandType.Text);
 

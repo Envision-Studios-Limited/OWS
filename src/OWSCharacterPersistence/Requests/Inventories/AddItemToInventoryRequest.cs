@@ -38,6 +38,14 @@ public class AddItemToInventoryRequest
     /// </remarks>
     public int ItemQuantity { get; set; }
     
+    /// <summary>
+    /// Custom Data
+    /// </summary>
+    /// <remarks>
+    /// This is the custom data
+    /// </remarks>
+    public string CustomData { get; set; }
+    
     private AddItemInventoryResult output;
     private Guid customerGUID;
     private ICharactersRepository charactersRepository;
@@ -51,7 +59,7 @@ public class AddItemToInventoryRequest
     public async Task<AddItemInventoryResult> Handle()
     {
         output = new AddItemInventoryResult();
-        output = await charactersRepository.AddItemToInventory(customerGUID, CharacterInventoryID, ItemID, ItemQuantity);
+        output = await charactersRepository.AddItemToInventory(customerGUID, CharacterInventoryID, ItemID, ItemQuantity, CustomData);
         
         return output;
     }

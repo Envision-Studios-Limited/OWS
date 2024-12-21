@@ -4157,7 +4157,7 @@ CREATE OR REPLACE FUNCTION AddItemToInventory(
     p_Quantity INT,
     p_CustomData TEXT DEFAULT NULL
 )
-RETURNS TABLE(itemID INT, Quantity INT, customData TEXT)
+RETURNS TABLE(ItemID INT, Quantity INT, CustomData TEXT)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -4232,14 +4232,14 @@ BEGIN
             INSERT INTO CharInventoryItems (
                 CustomerGUID, CharInventoryID, ItemID, InSlotNumber, Quantity, CustomData
             ) VALUES (
-                p_CustomerGUID, p_CharInventoryID, p_ItemID, v_SlotToUse, v_RemainingQuantity, v_CustomData
+                p_CustomerGUID, p_CharInventoryID, p_ItemID, v_SlotToUse, v_RemainingQuantity, p_customData
             );
             v_RemainingQuantity := 0;
         ELSE
             INSERT INTO CharInventoryItems (
                 CustomerGUID, CharInventoryID, ItemID, InSlotNumber, Quantity, CustomData
             ) VALUES (
-                p_CustomerGUID, p_CharInventoryID, p_ItemID, v_SlotToUse, v_StackSize, v_CustomData
+                p_CustomerGUID, p_CharInventoryID, p_ItemID, v_SlotToUse, v_StackSize, p_customData
             );
             v_RemainingQuantity := v_RemainingQuantity - v_StackSize;
         END IF;
@@ -4264,7 +4264,7 @@ CREATE OR REPLACE FUNCTION AddItemToInventoryByIndex(
     p_SlotIndex INT,
     p_CustomData TEXT DEFAULT NULL
 )
-RETURNS TABLE(itemID INT, Quantity INT, customData TEXT)
+RETURNS TABLE(ItemID INT, Quantity INT, CustomData TEXT)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -4293,22 +4293,22 @@ BEGIN
     END IF;
 
     -- 3. Check if the slot is occupied and the item in the slot
-    SELECT ItemID, Quantity INTO v_ExistingItemID, v_CurrentQuantity
-    FROM CharInventoryItems
-    WHERE CustomerGUID = p_CustomerGUID
-      AND CharInventoryID = p_CharInventoryID
-      AND InSlotNumber = p_SlotIndex;
+    SELECT cii.ItemID, cii.Quantity INTO v_ExistingItemID, v_CurrentQuantity
+    FROM CharInventoryItems cii
+    WHERE cii.CustomerGUID = p_CustomerGUID
+      AND cii.CharInventoryID = p_CharInventoryID
+      AND cii.InSlotNumber = p_SlotIndex;
 
     IF FOUND THEN
         -- Slot is occupied; check if it's the same item
         IF v_ExistingItemID = p_ItemID THEN
             -- Stackable logic for the same item
-            SELECT ItemCanStack, ItemStackSize INTO v_ItemCanStack, v_StackSize
-            FROM Items
-            WHERE CustomerGUID = p_CustomerGUID AND ItemID = p_ItemID;
+            SELECT i.ItemCanStack, i.ItemStackSize INTO v_ItemCanStack, v_StackSize
+            FROM Items i
+            WHERE i.CustomerGUID = p_CustomerGUID AND i.ItemID = p_ItemID;
 
             IF NOT v_ItemCanStack THEN
-                            RAISE EXCEPTION 'Slot % is occupied by a non-stackable item.', p_SlotIndex;
+                RAISE EXCEPTION 'Slot % is occupied by a non-stackable item.', p_SlotIndex;
             END IF;
 
             IF v_CurrentQuantity < v_StackSize THEN
@@ -4345,9 +4345,9 @@ BEGIN
     END IF;
 
     -- 4. Slot is empty, insert the item
-    SELECT ItemCanStack, ItemStackSize INTO v_ItemCanStack, v_StackSize
-    FROM Items
-    WHERE CustomerGUID = p_CustomerGUID AND ItemID = p_ItemID;
+    SELECT i.ItemCanStack, i.ItemStackSize INTO v_ItemCanStack, v_StackSize
+    FROM Items AS i
+    WHERE i.CustomerGUID = p_CustomerGUID AND i.ItemID = p_ItemID;
 
     v_RemainingQuantity := p_Quantity;
 
@@ -4396,7 +4396,7 @@ CREATE OR REPLACE FUNCTION RemoveItemFromInventoryByIndex(
     p_SlotIndex INT,
     p_Quantity INT
 )
-RETURNS TABLE(ItemID INT, Quantity INT, customData TEXT)
+RETURNS TABLE(ItemID INT, Quantity INT, CustomData TEXT)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -4411,7 +4411,7 @@ BEGIN
     WHERE ci.CharInventoryID = p_CharInventoryID;
 
     IF p_SlotIndex < 0 OR p_SlotIndex >= v_InventorySize THEN
-            RAISE EXCEPTION 'Invalid slot index: %. Must be between 0 and %.', p_SlotIndex, v_InventorySize - 1;
+        RAISE EXCEPTION 'Invalid slot index: %. Must be between 0 and %.', p_SlotIndex, v_InventorySize - 1;
     END IF;
 
     -- 2. Check if the slot is occupied

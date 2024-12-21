@@ -391,6 +391,14 @@
             This is the slot index number of inventory
             </remarks>
         </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryByIndexRequest.CustomData">
+            <summary>
+            Custom Data
+            </summary>
+            <remarks>
+            This is the custom data
+            </remarks>
+        </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest">
             <summary>
             Add Item To Inventory
@@ -421,6 +429,14 @@
             </summary>
             <remarks>
             This is the number of item to add
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest.CustomData">
+            <summary>
+            Custom Data
+            </summary>
+            <remarks>
+            This is the custom data
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.RemoveItemFromInventoryByIndexRequest">
