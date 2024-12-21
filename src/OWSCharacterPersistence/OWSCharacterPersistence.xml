@@ -146,6 +146,19 @@
             <b>ItemQuantity</b> - This is the number of item to add.<br/>
             </param>
         </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.RemoveItemFromInventoryByIndex(OWSCharacterPersistence.Requests.Inventories.RemoveItemFromInventoryByIndexRequest)">
+            <summary>
+            Remove Item from Inventory By Index
+            </summary>
+            <remarks>
+            Remove item from inventory by index
+            </remarks>
+            <param name="request">
+            <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+            <b>SlotIndex</b> - This is the slot index number of inventory.<br/>
+            <b>ItemQuantity</b> - This is the number of item to add.<br/>
+            </param>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -403,6 +416,38 @@
             </remarks>
         </member>
         <member name="P:OWSCharacterPersistence.Requests.Inventories.AddItemToInventoryRequest.ItemQuantity">
+            <summary>
+            Item Quantity
+            </summary>
+            <remarks>
+            This is the number of item to add
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.RemoveItemFromInventoryByIndexRequest">
+            <summary>
+            Remove item from inventory by index
+            </summary>
+            <remarks>
+            Remove item from inventory by index
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.RemoveItemFromInventoryByIndexRequest.CharacterInventoryID">
+            <summary>
+            Character Inventory ID
+            </summary>
+            <remarks>
+            This is the ID of character's inventory to be inserted an item
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.RemoveItemFromInventoryByIndexRequest.SlotIndex">
+            <summary>
+            Slot Index
+            </summary>
+            <remarks>
+            This is the slot index number of inventory
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.RemoveItemFromInventoryByIndexRequest.ItemQuantity">
             <summary>
             Item Quantity
             </summary>

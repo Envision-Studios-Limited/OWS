@@ -28,7 +28,8 @@ namespace OWSData.Repositories.Interfaces
         Task<MapInstances> SpinUpInstance(Guid customerGUID, string zoneName, int playerGroupId = 0);
         Task RemoveAbilityFromCharacter(Guid customerGUID, string abilityName, string characterName);
         Task UpdateAbilityOnCharacter(Guid customerGUID, string abilityName, string characterName, int abilityLevel, string charHasAbilitiesCustomJSON);
-        Task<AddItemToInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity);
-        Task<AddItemToInventoryResult> AddItemToInventoryByIndex(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity, int slotIndex);
+        Task<AddItemInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity);
+        Task<AddItemInventoryResult> AddItemToInventoryByIndex(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity, int slotIndex);
+        Task<RemoveItemInventoryResult> RemoveItemFromInventoryByIndex(Guid customerGUID, int characterInventoryID, int slotIndex, int itemQuantity);
     }
 }

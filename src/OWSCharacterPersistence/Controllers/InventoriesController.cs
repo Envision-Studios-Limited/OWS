@@ -63,8 +63,8 @@ namespace OWSCharacterPersistence.Controllers
         /// </param>
         [HttpPost]
         [Route("AddItemToInventoryByIndex")]
-        [Produces(typeof(AddItemToInventoryResult))]
-        public async Task<AddItemToInventoryResult> AddItemToInventoryByIndex([FromBody] AddItemToInventoryByIndexRequest request)
+        [Produces(typeof(AddItemInventoryResult))]
+        public async Task<AddItemInventoryResult> AddItemToInventoryByIndex([FromBody] AddItemToInventoryByIndexRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();
@@ -83,8 +83,28 @@ namespace OWSCharacterPersistence.Controllers
         /// </param>
         [HttpPost]
         [Route("AddItemToInventory")]
-        [Produces(typeof(AddItemToInventoryResult))]
-        public async Task<AddItemToInventoryResult> AddItemToInventory([FromBody] AddItemToInventoryRequest request)
+        [Produces(typeof(AddItemInventoryResult))]
+        public async Task<AddItemInventoryResult> AddItemToInventory([FromBody] AddItemToInventoryRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+        
+        /// <summary>
+        /// Remove Item from Inventory By Index
+        /// </summary>
+        /// <remarks>
+        /// Remove item from inventory by index
+        /// </remarks>
+        /// <param name="request">
+        /// <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+        /// <b>SlotIndex</b> - This is the slot index number of inventory.<br/>
+        /// <b>ItemQuantity</b> - This is the number of item to add.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("RemoveItemFromInventoryByIndex")]
+        [Produces(typeof(RemoveItemInventoryResult))]
+        public async Task<RemoveItemInventoryResult> RemoveItemFromInventoryByIndex([FromBody] RemoveItemFromInventoryByIndexRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();

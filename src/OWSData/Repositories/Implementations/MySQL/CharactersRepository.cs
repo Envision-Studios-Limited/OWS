@@ -592,9 +592,9 @@ namespace OWSData.Repositories.Implementations.MySQL
             }
         }
 
-        public async Task<AddItemToInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity)
+        public async Task<AddItemInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity)
         {
-            var result = new AddItemToInventoryResult();
+            var result = new AddItemInventoryResult();
 
             try
             {
@@ -607,12 +607,12 @@ namespace OWSData.Repositories.Implementations.MySQL
                     p.Add("@ItemQuantity", itemQuantity);
 
                     // Call the PostgreSQL function
-                    var queryResult = await Connection.QueryAsync<AddItemToInventoryResult.ItemResult>(
+                    var queryResult = await Connection.QueryAsync<ItemResult>(
                         "SELECT * FROM AddItemToInventory(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity)",
                         p,
                         commandType: CommandType.Text);
 
-                    result.Items = queryResult.ToList();
+                    result.RejectedItems = queryResult.ToList();
                     result.Success = true;
                     result.ErrorMessage = string.Empty;
                 }
@@ -626,10 +626,10 @@ namespace OWSData.Repositories.Implementations.MySQL
             return result;
         }
 
-        public async Task<AddItemToInventoryResult> AddItemToInventoryByIndex(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity,
+        public async Task<AddItemInventoryResult> AddItemToInventoryByIndex(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity,
             int slotIndex)
         {
-            var result = new AddItemToInventoryResult();
+            var result = new AddItemInventoryResult();
 
             try
             {
@@ -643,12 +643,46 @@ namespace OWSData.Repositories.Implementations.MySQL
                     p.Add("@SlotIndex", slotIndex);
 
                     // Call the PostgreSQL function
-                    var queryResult = await Connection.QueryAsync<AddItemToInventoryResult.ItemResult>(
+                    var queryResult = await Connection.QueryAsync<ItemResult>(
                         "SELECT * FROM AddItemToInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity, @SlotIndex)",
                         p,
                         commandType: CommandType.Text);
 
-                    result.Items = queryResult.ToList();
+                    result.RejectedItems = queryResult.ToList();
+                    result.Success = true;
+                    result.ErrorMessage = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.ErrorMessage = ex.Message;
+            }
+
+            return result;
+        }
+
+        public async Task<RemoveItemInventoryResult> RemoveItemFromInventoryByIndex(Guid customerGUID, int characterInventoryID, int slotIndex, int itemQuantity)
+        {
+            var result = new RemoveItemInventoryResult();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharacterInventoryID", characterInventoryID);
+                    p.Add("@SlotIndex", slotIndex);
+                    p.Add("@ItemQuantity", itemQuantity);
+
+                    // Call the PostgreSQL function
+                    var queryResult = await Connection.QueryAsync<ItemResult>(
+                        "SELECT * FROM RemoveItemFromInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @SlotIndex, @ItemQuantity)",
+                        p,
+                        commandType: CommandType.Text);
+
+                    result.RemovedItems = queryResult.ToList();
                     result.Success = true;
                     result.ErrorMessage = string.Empty;
                 }

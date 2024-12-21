@@ -7,12 +7,12 @@ using OWSShared.Interfaces;
 namespace OWSCharacterPersistence.Requests.Inventories;
 
 /// <summary>
-/// Add Item To Inventory
+/// Remove item from inventory by index
 /// </summary>
 /// <remarks>
-/// Adds an item to Character's inventory
+/// Remove item from inventory by index
 /// </remarks>
-public class AddItemToInventoryByIndexRequest
+public class RemoveItemFromInventoryByIndexRequest
 {
     /// <summary>
     /// Character Inventory ID
@@ -23,12 +23,12 @@ public class AddItemToInventoryByIndexRequest
     public int CharacterInventoryID { get; set; }
     
     /// <summary>
-    /// Item ID
+    /// Slot Index
     /// </summary>
     /// <remarks>
-    /// This is the ID of item
+    /// This is the slot index number of inventory
     /// </remarks>
-    public int ItemID { get; set; }
+    public int SlotIndex { get; set; }
     
     /// <summary>
     /// Item Quantity
@@ -38,28 +38,20 @@ public class AddItemToInventoryByIndexRequest
     /// </remarks>
     public int ItemQuantity { get; set; }
     
-    /// <summary>
-    /// Slot Index
-    /// </summary>
-    /// <remarks>
-    /// This is the slot index number of inventory
-    /// </remarks>
-    public int SlotIndex { get; set; }
-    
-    private AddItemInventoryResult output;
+    private RemoveItemInventoryResult output;
     private Guid customerGUID;
     private ICharactersRepository charactersRepository;
-
+    
     public void SetData(ICharactersRepository charactersRepository, IHeaderCustomerGUID customerGuid)
     {
         this.charactersRepository = charactersRepository;
         customerGUID = customerGuid.CustomerGUID;
     }
-
-    public async Task<AddItemInventoryResult> Handle()
+    
+    public async Task<RemoveItemInventoryResult> Handle()
     {
-        output = new AddItemInventoryResult();
-        output = await charactersRepository.AddItemToInventoryByIndex(customerGUID, CharacterInventoryID, ItemID, ItemQuantity, SlotIndex);
+        output = new RemoveItemInventoryResult();
+        output = await charactersRepository.RemoveItemFromInventoryByIndex(customerGUID, CharacterInventoryID, SlotIndex, ItemQuantity);
         
         return output;
     }
