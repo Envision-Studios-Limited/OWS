@@ -697,5 +697,39 @@ namespace OWSData.Repositories.Implementations.MySQL
 
             return result;
         }
+        
+        public async Task<SuccessAndErrorMessage> MoveItemBetweenIndices(Guid customerGUID, int characterInventoryID, int fromIndex, int toIndex)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharacterInventoryID", characterInventoryID);
+                    p.Add("@FromIndex", fromIndex);
+                    p.Add("@ToIndex", toIndex);
+                    
+                    var queryResult = await Connection.QueryAsync<ItemResult>(
+                        "SELECT * FROM MoveItemBetweenIndices(@CustomerGUID, @CharacterInventoryID, @FromIndex, @ToIndex)",
+                        p,
+                        commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
     }
 }

@@ -4451,4 +4451,68 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION MoveItemBetweenIndices(
+    p_CustomerGUID UUID,
+    p_CharInventoryID INT,
+    p_FromIndex INT,
+    p_ToIndex INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_InventorySize INT;
+    v_FromItemID INT;
+    v_FromQuantity INT;
+    v_ToItemID INT;
+BEGIN
+    -- 1. Check if the indices are valid
+    SELECT ci.InventorySize INTO v_InventorySize
+    FROM CharInventory ci
+    WHERE ci.CharInventoryID = p_CharInventoryID;
+
+    IF p_FromIndex < 0 OR p_FromIndex >= v_InventorySize THEN
+       RAISE EXCEPTION 'Invalid source index: %. Must be between 0 and %.', p_FromIndex, v_InventorySize - 1;
+    END IF;
+
+    IF p_ToIndex < 0 OR p_ToIndex >= v_InventorySize THEN
+       RAISE EXCEPTION 'Invalid target index: %. Must be between 0 and %.', p_ToIndex, v_InventorySize - 1;
+    END IF;
+
+    -- 2. Check if the source slot is occupied
+    SELECT cii.ItemID, cii.Quantity INTO v_FromItemID, v_FromQuantity
+    FROM CharInventoryItems cii
+    WHERE cii.CustomerGUID = p_CustomerGUID
+      AND cii.CharInventoryID = p_CharInventoryID
+      AND cii.InSlotNumber = p_FromIndex;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'No item found in source slot %.', p_FromIndex;
+        END IF;
+
+    -- 3. Check if the target slot is already occupied (only if it's not moving to itself)
+    IF p_FromIndex <> p_ToIndex THEN
+        SELECT cii.ItemID INTO v_ToItemID
+        FROM CharInventoryItems cii
+        WHERE cii.CustomerGUID = p_CustomerGUID
+          AND cii.CharInventoryID = p_CharInventoryID
+          AND cii.InSlotNumber = p_ToIndex;
+
+        IF FOUND THEN 
+           RAISE EXCEPTION 'Target slot % is already occupied by item %.', 
+           p_ToIndex, 
+           v_ToItemID;
+        END IF;
+    END IF;
+
+    -- 4. Move the item to the target slot (update InSlotNumber)
+    UPDATE CharInventoryItems
+    SET InSlotNumber = p_ToIndex
+    WHERE CustomerGUID = p_CustomerGUID
+      AND CharInventoryID = p_CharInventoryID
+      AND InSlotNumber = p_FromIndex;
+    END;
+    $$;
+
+
 INSERT INTO OWSVersion (OWSDBVersion) VALUES('20230304');

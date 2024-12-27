@@ -159,6 +159,19 @@
             <b>ItemQuantity</b> - This is the number of item to add.<br/>
             </param>
         </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.MoveItemBetweenIndices(OWSCharacterPersistence.Requests.Inventories.MoveInventoryItemRequest)">
+            <summary>
+            Move item from index a to b 
+            </summary>
+            <remarks>
+            Move item from index a to b
+            </remarks>
+            <param name="request">
+            <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+            <b>FromIndex</b> - This is the source slot index number of inventory.<br/>
+            <b>FromIndex</b> - This is the destination slot index number of inventory.<br/>
+            </param>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -437,6 +450,38 @@
             </summary>
             <remarks>
             This is the custom data
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.MoveInventoryItemRequest">
+            <summary>
+            Move item's index in inventory
+            </summary>
+            <remarks>
+            Move item's index in inventory
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.MoveInventoryItemRequest.CharacterInventoryID">
+            <summary>
+            Character Inventory ID
+            </summary>
+            <remarks>
+            This is the ID of character's inventory to be inserted an item
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.MoveInventoryItemRequest.FromIndex">
+            <summary>
+            From Slot Index
+            </summary>
+            <remarks>
+            This is the source index
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.MoveInventoryItemRequest.ToIndex">
+            <summary>
+            To Slot Index
+            </summary>
+            <remarks>
+            This is index destination
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.RemoveItemFromInventoryByIndexRequest">

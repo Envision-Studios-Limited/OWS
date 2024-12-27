@@ -31,5 +31,6 @@ namespace OWSData.Repositories.Interfaces
         Task<AddItemInventoryResult> AddItemToInventory(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity, string customData);
         Task<AddItemInventoryResult> AddItemToInventoryByIndex(Guid customerGUID, int characterInventoryID, int itemId, int itemQuantity, int slotIndex, string customData);
         Task<RemoveItemInventoryResult> RemoveItemFromInventoryByIndex(Guid customerGUID, int characterInventoryID, int slotIndex, int itemQuantity);
+        Task<SuccessAndErrorMessage> MoveItemBetweenIndices(Guid customerGUID, int characterInventoryID, int fromIndex, int toIndex);
     }
 }

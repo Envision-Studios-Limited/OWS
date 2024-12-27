@@ -110,5 +110,24 @@ namespace OWSCharacterPersistence.Controllers
             return await request.Handle();
         }
 
+        /// <summary>
+        /// Move item from index a to b 
+        /// </summary>
+        /// <remarks>
+        /// Move item from index a to b
+        /// </remarks>
+        /// <param name="request">
+        /// <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+        /// <b>FromIndex</b> - This is the source slot index number of inventory.<br/>
+        /// <b>FromIndex</b> - This is the destination slot index number of inventory.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("MoveItemBetweenIndices")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> MoveItemBetweenIndices([FromBody] MoveInventoryItemRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
     }
 }
