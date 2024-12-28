@@ -119,12 +119,51 @@ namespace OWSCharacterPersistence.Controllers
         /// <param name="request">
         /// <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
         /// <b>FromIndex</b> - This is the source slot index number of inventory.<br/>
-        /// <b>FromIndex</b> - This is the destination slot index number of inventory.<br/>
+        /// <b>ToIndex</b> - This is the destination slot index number of inventory.<br/>
         /// </param>
         [HttpPost]
         [Route("MoveItemBetweenIndices")]
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<SuccessAndErrorMessage> MoveItemBetweenIndices([FromBody] MoveInventoryItemRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+        
+        /// <summary>
+        /// Swap items in inventory 
+        /// </summary>
+        /// <remarks>
+        /// Swap items in inventory
+        /// </remarks>
+        /// <param name="request">
+        /// <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+        /// <b>FirstIndex</b> - First item index to swap.<br/>
+        /// <b>SecondIndex</b> - Second item index to swap.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("SwapItemsInInventory")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> SwapItemsInInventory([FromBody] SwapItemsInInventoryRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+        
+        /// <summary>
+        /// Get Item Data In Inventory
+        /// </summary>
+        /// <remarks>
+        /// Get Item Data In Inventory
+        /// </remarks>
+        /// <param name="request">
+        /// <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+        /// <b>SlotIndex</b> - Item slot index.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("GetItemDataInInventory")]
+        [Produces(typeof(GetItemDataInInventory))]
+        public async Task<GetItemDataInInventory> GetItemDataInInventory([FromBody] GetItemDataInInventoryRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();

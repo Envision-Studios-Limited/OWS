@@ -169,7 +169,32 @@
             <param name="request">
             <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
             <b>FromIndex</b> - This is the source slot index number of inventory.<br/>
-            <b>FromIndex</b> - This is the destination slot index number of inventory.<br/>
+            <b>ToIndex</b> - This is the destination slot index number of inventory.<br/>
+            </param>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.SwapItemsInInventory(OWSCharacterPersistence.Requests.Inventories.SwapItemsInInventoryRequest)">
+            <summary>
+            Swap items in inventory 
+            </summary>
+            <remarks>
+            Swap items in inventory
+            </remarks>
+            <param name="request">
+            <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+            <b>FirstIndex</b> - First item index to swap.<br/>
+            <b>SecondIndex</b> - Second item index to swap.<br/>
+            </param>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.GetItemDataInInventory(OWSCharacterPersistence.Requests.Inventories.GetItemDataInInventoryRequest)">
+            <summary>
+            Get Item Data In Inventory
+            </summary>
+            <remarks>
+            Get Item Data In Inventory
+            </remarks>
+            <param name="request">
+            <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+            <b>SlotIndex</b> - Item slot index.<br/>
             </param>
         </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
@@ -452,6 +477,30 @@
             This is the custom data
             </remarks>
         </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.GetItemDataInInventoryRequest">
+            <summary>
+            Get item data in inventory
+            </summary>
+            <remarks>
+            Get item data in inventory
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.GetItemDataInInventoryRequest.CharacterInventoryID">
+            <summary>
+            Character Inventory ID
+            </summary>
+            <remarks>
+            This is the ID of character's inventory to be inserted an item
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.GetItemDataInInventoryRequest.SlotIndex">
+            <summary>
+            Item Slot Index
+            </summary>
+            <remarks>
+            Item item index
+            </remarks>
+        </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.MoveInventoryItemRequest">
             <summary>
             Move item's index in inventory
@@ -514,6 +563,38 @@
             </summary>
             <remarks>
             This is the number of item to add
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.SwapItemsInInventoryRequest">
+            <summary>
+            Swap items index in inventory
+            </summary>
+            <remarks>
+            Swap items index in inventory
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.SwapItemsInInventoryRequest.CharacterInventoryID">
+            <summary>
+            Character Inventory ID
+            </summary>
+            <remarks>
+            This is the ID of character's inventory to be inserted an item
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.SwapItemsInInventoryRequest.FirstIndex">
+            <summary>
+            First Slot Index
+            </summary>
+            <remarks>
+            First item index
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.SwapItemsInInventoryRequest.SecondIndex">
+            <summary>
+            Second Slot Index
+            </summary>
+            <remarks>
+            Second item index
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Statuses.GetCharacterStatusesRequest">

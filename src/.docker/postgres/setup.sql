@@ -4167,7 +4167,20 @@ DECLARE
     v_CurrentQuantity INT;
     v_SlotToUse INT;
     v_RemainingQuantity INT;
+    v_CharInventoryExists BOOLEAN;
 BEGIN
+    -- Validate if p_CharInventoryID exists
+    SELECT EXISTS (
+        SELECT 1
+        FROM CharInventory
+        WHERE CustomerGUID = p_CustomerGUID
+          AND CharInventoryID = p_CharInventoryID
+    ) INTO v_CharInventoryExists;
+    
+    IF NOT v_CharInventoryExists THEN
+        RAISE EXCEPTION 'CharInventoryID % does not exist for CustomerGUID %.', p_CharInventoryID, p_CustomerGUID;
+    END IF;
+
     -- 1. Validate if the item exists
     v_ItemExists := ValidateItemExistence(p_CustomerGUID, p_ItemID);
     IF NOT v_ItemExists THEN
@@ -4276,7 +4289,20 @@ DECLARE
     v_InventorySize INT;
     v_SlotOccupied BOOLEAN;
     v_ExistingItemID INT;
+    v_CharInventoryExists BOOLEAN;
 BEGIN
+    -- Validate if p_CharInventoryID exists
+    SELECT EXISTS (
+        SELECT 1
+        FROM CharInventory
+        WHERE CustomerGUID = p_CustomerGUID
+          AND CharInventoryID = p_CharInventoryID
+    ) INTO v_CharInventoryExists;
+    
+    IF NOT v_CharInventoryExists THEN
+            RAISE EXCEPTION 'CharInventoryID % does not exist for CustomerGUID %.', p_CharInventoryID, p_CustomerGUID;
+    END IF;
+
     -- 1. Validate if the item exists
     v_ItemExists := ValidateItemExistence(p_CustomerGUID, p_ItemID);
     IF NOT v_ItemExists THEN
@@ -4404,7 +4430,20 @@ DECLARE
     v_ExistingItemID INT;
     v_InventorySize INT;
     v_CustomData TEXT;
+    v_CharInventoryExists BOOLEAN;
 BEGIN
+    -- Validate if p_CharInventoryID exists
+    SELECT EXISTS (
+        SELECT 1
+        FROM CharInventory
+        WHERE CustomerGUID = p_CustomerGUID
+          AND CharInventoryID = p_CharInventoryID
+    ) INTO v_CharInventoryExists;
+    
+    IF NOT v_CharInventoryExists THEN
+        RAISE EXCEPTION 'CharInventoryID % does not exist for CustomerGUID %.', p_CharInventoryID, p_CustomerGUID;
+    END IF;
+
     -- 1. Check if the slot index is valid
     SELECT ci.InventorySize INTO v_InventorySize
     FROM CharInventory ci
@@ -4465,7 +4504,20 @@ DECLARE
     v_FromItemID INT;
     v_FromQuantity INT;
     v_ToItemID INT;
+    v_CharInventoryExists BOOLEAN;
 BEGIN
+    -- Validate if p_CharInventoryID exists
+    SELECT EXISTS (
+        SELECT 1
+        FROM CharInventory
+        WHERE CustomerGUID = p_CustomerGUID
+          AND CharInventoryID = p_CharInventoryID
+    ) INTO v_CharInventoryExists;
+    
+    IF NOT v_CharInventoryExists THEN
+        RAISE EXCEPTION 'CharInventoryID % does not exist for CustomerGUID %.', p_CharInventoryID, p_CustomerGUID;
+    END IF;
+
     -- 1. Check if the indices are valid
     SELECT ci.InventorySize INTO v_InventorySize
     FROM CharInventory ci
@@ -4514,5 +4566,175 @@ BEGIN
     END;
     $$;
 
+CREATE OR REPLACE FUNCTION SwapItemsInInventory(
+    p_CustomerGUID UUID,
+    p_CharInventoryID INT,
+    p_FirstIndex INT,
+    p_SecondIndex INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_InventorySize INT;
+    v_FirstItemID INT;
+    v_FirstQuantity INT;
+    v_FirstCustomData TEXT;
+    v_SecondItemID INT;
+    v_SecondQuantity INT;
+    v_SecondCustomData TEXT;
+    v_CharInventoryExists BOOLEAN;
+BEGIN
+    -- Validate if p_CharInventoryID exists
+    SELECT EXISTS (
+        SELECT 1
+        FROM CharInventory
+        WHERE CustomerGUID = p_CustomerGUID
+          AND CharInventoryID = p_CharInventoryID
+    ) INTO v_CharInventoryExists;
+    
+    IF NOT v_CharInventoryExists THEN
+                RAISE EXCEPTION 'CharInventoryID % does not exist for CustomerGUID %.', p_CharInventoryID, p_CustomerGUID;
+    END IF;
+
+    -- 0. Check if the indices are the same
+    IF p_FirstIndex = p_SecondIndex THEN
+        RETURN; -- Simply return without doing anything
+    END IF;
+    
+    -- 1. Check if the indices are valid
+    SELECT ci.InventorySize INTO v_InventorySize
+    FROM CharInventory ci
+    WHERE ci.CharInventoryID = p_CharInventoryID;
+
+    IF p_FirstIndex < 0 OR p_FirstIndex >= v_InventorySize THEN
+            RAISE EXCEPTION 'Invalid first index: %. Must be between 0 and %.', p_FirstIndex, v_InventorySize - 1;
+    END IF;
+
+    IF p_SecondIndex < 0 OR p_SecondIndex >= v_InventorySize THEN
+        RAISE EXCEPTION 'Invalid second index: %. Must be between 0 and %.', p_SecondIndex, v_InventorySize - 1;
+    END IF;
+
+    -- 2. Check if both slots are occupied
+    SELECT cii.ItemID, cii.Quantity, cii.CustomData INTO v_FirstItemID, v_FirstQuantity, v_FirstCustomData
+    FROM CharInventoryItems cii
+    WHERE cii.CustomerGUID = p_CustomerGUID
+      AND cii.CharInventoryID = p_CharInventoryID
+      AND cii.InSlotNumber = p_FirstIndex;
+
+    IF NOT FOUND THEN
+            RAISE EXCEPTION 'No item found in first slot %.', p_FirstIndex;
+    END IF;
+
+    SELECT cii.ItemID, cii.Quantity, cii.CustomData INTO v_SecondItemID, v_SecondQuantity, v_SecondCustomData
+    FROM CharInventoryItems cii
+    WHERE cii.CustomerGUID = p_CustomerGUID
+      AND cii.CharInventoryID = p_CharInventoryID
+      AND cii.InSlotNumber = p_SecondIndex;
+
+    IF NOT FOUND THEN
+            RAISE EXCEPTION 'No item found in second slot %.', p_SecondIndex;
+    END IF;
+
+    -- 3. Swap the positions of the items
+    -- Temporarily move the first item to a safe slot (e.g., -1) to avoid conflicts
+    UPDATE CharInventoryItems
+    SET InSlotNumber = -1
+    WHERE CustomerGUID = p_CustomerGUID
+      AND CharInventoryID = p_CharInventoryID
+      AND InSlotNumber = p_FirstIndex;
+
+    -- Move the second item to the first slot
+    UPDATE CharInventoryItems
+    SET InSlotNumber = p_FirstIndex
+    WHERE CustomerGUID = p_CustomerGUID
+      AND CharInventoryID = p_CharInventoryID
+      AND InSlotNumber = p_SecondIndex;
+
+    -- Move the first item (now at -1) to the second slot
+    UPDATE CharInventoryItems
+    SET InSlotNumber = p_SecondIndex
+    WHERE CustomerGUID = p_CustomerGUID
+      AND CharInventoryID = p_CharInventoryID
+      AND InSlotNumber = -1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION GetItemDataByIndex(
+    p_CustomerGUID UUID,
+    p_CharInventoryID INT,
+    p_SlotIndex INT
+)
+RETURNS TABLE (
+    ItemID INT, -- From Items table
+    Quantity INT, -- From CharInventoryItems
+    InSlotNumber INT, -- From CharInventoryItems
+    NumberOfUsesLeft INT, -- From CharInventoryItems
+    CharInventoryItemGUID UUID, -- From CharInventoryItems
+    CustomData TEXT -- From CharInventoryItems
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_CharInventoryExists BOOLEAN;
+    v_ItemExists BOOLEAN;
+BEGIN
+    -- Validate if p_CharInventoryID exists
+    SELECT EXISTS (
+        SELECT 1
+        FROM CharInventory
+        WHERE CustomerGUID = p_CustomerGUID
+          AND CharInventoryID = p_CharInventoryID
+    ) INTO v_CharInventoryExists;
+    
+    IF NOT v_CharInventoryExists THEN
+            RAISE EXCEPTION 'CharInventoryID % does not exist for CustomerGUID %.', p_CharInventoryID, p_CustomerGUID;
+    END IF;
+
+    -- Validate the slot index
+    IF p_SlotIndex < 0 OR p_SlotIndex >= (
+        SELECT InventorySize
+        FROM CharInventory
+        WHERE CharInventoryID = p_CharInventoryID
+    ) THEN
+        RAISE EXCEPTION 'Invalid slot index: %. Must be between 0 and %.', p_SlotIndex, (
+            SELECT InventorySize - 1
+            FROM CharInventory
+            WHERE CharInventoryID = p_CharInventoryID
+        );
+    END IF;
+    
+    -- Check if an item exists in the specified slot
+    SELECT EXISTS (
+        SELECT 1
+        FROM CharInventoryItems cii
+        WHERE cii.CustomerGUID = p_CustomerGUID
+          AND cii.CharInventoryID = p_CharInventoryID
+          AND cii.InSlotNumber = p_SlotIndex
+    ) INTO v_ItemExists;
+    
+    IF NOT v_ItemExists THEN
+            RAISE EXCEPTION 'No item found in slot %.', p_SlotIndex;
+    END IF;
+
+    -- Return item data from CharInventoryItems (with ItemID from Items)
+    RETURN QUERY
+    SELECT
+        i.ItemID, -- Only ItemID from Items table
+        cii.Quantity,
+        cii.InSlotNumber,
+        cii.NumberOfUsesLeft,
+        cii.CharInventoryItemGUID,
+        cii.CustomData
+    FROM
+        CharInventoryItems cii
+            INNER JOIN
+        Items i ON cii.ItemID = i.ItemID AND cii.CustomerGUID = i.CustomerGUID
+    WHERE
+        cii.CustomerGUID = p_CustomerGUID
+      AND cii.CharInventoryID = p_CharInventoryID
+      AND cii.InSlotNumber = p_SlotIndex;
+END;
+$$;
 
 INSERT INTO OWSVersion (OWSDBVersion) VALUES('20230304');

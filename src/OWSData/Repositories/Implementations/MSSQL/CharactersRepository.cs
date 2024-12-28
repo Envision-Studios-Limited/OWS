@@ -761,7 +761,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
                     p.Add("@FromIndex", fromIndex);
                     p.Add("@ToIndex", toIndex);
                     
-                    var queryResult = await Connection.QueryAsync<ItemResult>(
+                    var queryResult = await Connection.QueryAsync(
                         "SELECT * FROM MoveItemBetweenIndices(@CustomerGUID, @CharacterInventoryID, @FromIndex, @ToIndex)",
                         p,
                         commandType: CommandType.Text);
@@ -779,6 +779,73 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
                 return outputObject;
             }
+        }
+        
+        public async Task<SuccessAndErrorMessage> SwapItemsInInventory(Guid customerGUID, int characterInventoryID, int firstIndex, int secondIndex)
+        {
+            SuccessAndErrorMessage outputObject = new SuccessAndErrorMessage();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharacterInventoryID", characterInventoryID);
+                    p.Add("@FirstIndex", firstIndex);
+                    p.Add("@SecondIndex", secondIndex);
+                    
+                    var queryResult = await Connection.QueryAsync(
+                        "SELECT * FROM SwapItemsInInventory(@CustomerGUID, @CharacterInventoryID, @FirstIndex, @SecondIndex)",
+                        p,
+                        commandType: CommandType.Text);
+                }
+
+                outputObject.Success = true;
+                outputObject.ErrorMessage = "";
+
+                return outputObject;
+            }
+            catch (Exception ex)
+            {
+                outputObject.Success = false;
+                outputObject.ErrorMessage = ex.Message;
+
+                return outputObject;
+            }
+        }
+        
+        public async Task<GetItemDataInInventory> GetItemDataInInventory(Guid customerGUID, int characterInventoryID, int slotIndex)
+        {
+            var result = new GetItemDataInInventory();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharacterInventoryID", characterInventoryID);
+                    p.Add("@SlotIndex", slotIndex);
+
+                    // Call the PostgreSQL function
+                    var queryResult = await Connection.QuerySingleOrDefaultAsync<GetItemDataInInventory>(
+                        "SELECT * FROM GetItemDataByIndex(@CustomerGUID, @CharacterInventoryID, @SlotIndex)",
+                        p,
+                        commandType: CommandType.Text);
+
+                    result = queryResult;
+                    result.Success = true;
+                    result.ErrorMessage = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.ErrorMessage = ex.Message;
+            }
+
+            return result;
         }
     }
 }

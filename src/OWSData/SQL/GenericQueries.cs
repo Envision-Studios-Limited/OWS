@@ -503,7 +503,7 @@ namespace OWSData.SQL
         #endregion
         
         #region Item Queries
-        public static readonly string GetItemByItemId = @"
+        public static readonly string GetItemDetails = @"
 			SELECT
 			    I.*,
 			    IA.ActionName,
