@@ -34,5 +34,6 @@ namespace OWSData.Repositories.Interfaces
         Task<SuccessAndErrorMessage> MoveItemBetweenIndices(Guid customerGUID, int characterInventoryID, int fromIndex, int toIndex);
         Task<SuccessAndErrorMessage> SwapItemsInInventory(Guid customerGUID, int characterInventoryID, int firstIndex, int secondIndex);
         Task<GetItemDataInInventory> GetItemDataInInventory(Guid customerGUID, int characterInventoryID, int slotIndex);
+        Task<GetItemDetails> GetItemDetails(Guid customerGUID, int itemId);
     }
 }

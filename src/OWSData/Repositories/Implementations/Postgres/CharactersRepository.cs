@@ -807,5 +807,69 @@ namespace OWSData.Repositories.Implementations.Postgres
 
             return result;
         }
+
+        public async Task<GetItemDetails> GetItemDetails(Guid customerGUID, int itemId)
+        {
+            using (Connection)
+            {
+                var result = new GetItemDetails();
+                
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@ItemID", itemId);
+
+                // Dictionary to store the item and its collections
+                var itemDictionary = new Dictionary<int, GetItemDetails>();
+
+                // Execute the query and map the results
+                var results = await Connection.QueryAsync<GetItemDetails, string, string, ItemStatMapping, GetItemDetails>(
+                    GenericQueries.GetItemDetails,
+                    (item, action, tag, stat) =>
+                    {
+                        // Check if the item is already in the dictionary
+                        if (!itemDictionary.TryGetValue(item.ItemID, out var itemEntry))
+                        {
+                            itemEntry = item;
+                            itemEntry.ItemActions = new List<string>();
+                            itemEntry.ItemTags = new List<string>();
+                            itemEntry.ItemStats = new List<ItemStatMapping>();
+                            itemDictionary.Add(item.ItemID, itemEntry);
+                        }
+
+                        // Add actions, tags, and stats to their respective collections
+                        if (!string.IsNullOrEmpty(action) && !itemEntry.ItemActions.Contains(action))
+                        {
+                            itemEntry.ItemActions.Add(action);
+                        }
+                        if (!string.IsNullOrEmpty(tag) && !itemEntry.ItemTags.Contains(tag))
+                        {
+                            itemEntry.ItemTags.Add(tag);
+                        }
+                        if (stat != null && !string.IsNullOrEmpty(stat.ItemStatName) && !itemEntry.ItemStats.Any(s => s.ItemStatName == stat.ItemStatName && s.ItemStatValue == stat.ItemStatValue))
+                        {
+                            itemEntry.ItemStats.Add(stat);
+                        }
+
+                        return itemEntry;
+                    },
+                    p,
+                    splitOn: "ItemAction,ItemTag,ItemStatName" // Split the result into multiple objects
+                );
+                
+                // Check if the item exists
+                if (!itemDictionary.Any())
+                {
+                    result.Success = false;
+                    result.ErrorMessage = "Item not found";
+                    return result;
+                }
+                
+                result = itemDictionary.Values.FirstOrDefault();
+                result!.Success = true;
+                result.ErrorMessage = string.Empty;
+                // Return the first (and only) item in the dictionary
+                return result;
+            }
+        }
     }
 }

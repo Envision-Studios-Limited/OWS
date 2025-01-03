@@ -504,26 +504,28 @@ namespace OWSData.SQL
         
         #region Item Queries
         public static readonly string GetItemDetails = @"
-			SELECT
-			    I.*,
-			    IA.ActionName,
-				IT.TagName,
-			FROM
-			    Items I
-			LEFT JOIN
-				ItemActionMappings IAM ON I.CustomerGUID = IAM.CustomerGUID AND I.ItemID = IAM.ItemID
-			LEFT JOIN
-				ItemActions IA ON IAM.CustomerGUID = IA.CustomerGUID AND IAM.ItemActionID = IA.ItemActionID
-			LEFT JOIN
-			    ItemTagMappings ITM ON I.CustomerGUID = ITM.CustomerGUID AND I.ItemID = ITM.ItemID
-			LEFT JOIN
-			    ItemTags IT ON ITM.CustomerGUID = IT.CustomerGUID AND ITM.ItemTagID = IT.ItemTagID
-			LEFT JOIN
-				ItemStatMappings ISM ON ISM.CustomerGUID = ISM.CustomerGUID AND I.ItemID = ISM.ItemID
-			LEFT JOIN
-			    ItemStats S ON ISM.CustomerGUID = S.CustomerGUID AND ISM.ItemStatID = S.ItemStatID
-			WHERE
-			    I.CustomerGUID = @CustomerGUID AND I.ItemID = @ItemID";
+		SELECT 
+		    i.*,
+		    ia.ActionName AS ItemAction,
+		    it.TagName AS ItemTag,
+		    ist.StatName AS ItemStatName,
+		    ism.StatValue AS ItemStatValue
+		FROM 
+		    Items i
+		LEFT JOIN 
+		    ItemActionMappings iam ON i.CustomerGUID = iam.CustomerGUID AND i.ItemID = iam.ItemID
+		LEFT JOIN 
+		    ItemActions ia ON iam.CustomerGUID = ia.CustomerGUID AND iam.ItemActionID = ia.ItemActionID
+		LEFT JOIN 
+		    ItemTagMappings itm ON i.CustomerGUID = itm.CustomerGUID AND i.ItemID = itm.ItemID
+		LEFT JOIN 
+		    ItemTags it ON itm.CustomerGUID = it.CustomerGUID AND itm.ItemTagID = it.ItemTagID
+		LEFT JOIN 
+		    ItemStatMappings ism ON i.CustomerGUID = ism.CustomerGUID AND i.ItemID = ism.ItemID
+		LEFT JOIN 
+		    ItemStats ist ON ism.CustomerGUID = ist.CustomerGUID AND ism.ItemStatID = ist.ItemStatID
+		WHERE 
+			I.CustomerGUID = @CustomerGUID AND i.ItemID = @ItemID";
         #endregion
     }
 }

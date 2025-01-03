@@ -168,5 +168,23 @@ namespace OWSCharacterPersistence.Controllers
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();
         }
+        
+        /// <summary>
+        /// Get Item Details
+        /// </summary>
+        /// <remarks>
+        /// Get Item Details
+        /// </remarks>
+        /// <param name="request">
+        /// <b>ItemID</b> - Item ID.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("GetItemDetails")]
+        [Produces(typeof(GetItemDetails))]
+        public async Task<GetItemDetails> GetItemDetails([FromBody] GetItemDetailsRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
     }
 }

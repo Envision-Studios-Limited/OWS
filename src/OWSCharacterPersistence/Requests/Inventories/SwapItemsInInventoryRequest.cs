@@ -51,7 +51,7 @@ public class SwapItemsInInventoryRequest
     public async Task<SuccessAndErrorMessage> Handle()
     {
         output = new SuccessAndErrorMessage();
-        output = await charactersRepository.MoveItemBetweenIndices(customerGUID, CharacterInventoryID, FirstIndex, SecondIndex);
+        output = await charactersRepository.SwapItemsInInventory(customerGUID, CharacterInventoryID, FirstIndex, SecondIndex);
         
         return output;
     }

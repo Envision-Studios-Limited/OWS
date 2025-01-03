@@ -197,6 +197,17 @@
             <b>SlotIndex</b> - Item slot index.<br/>
             </param>
         </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.GetItemDetails(OWSCharacterPersistence.Requests.Inventories.GetItemDetailsRequest)">
+            <summary>
+            Get Item Details
+            </summary>
+            <remarks>
+            Get Item Details
+            </remarks>
+            <param name="request">
+            <b>ItemID</b> - Item ID.<br/>
+            </param>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -499,6 +510,22 @@
             </summary>
             <remarks>
             Item item index
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.GetItemDetailsRequest">
+            <summary>
+            Get item details
+            </summary>
+            <remarks>
+            Get item details
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.GetItemDetailsRequest.ItemID">
+            <summary>
+            Item ID
+            </summary>
+            <remarks>
+            Item ID
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.MoveInventoryItemRequest">
