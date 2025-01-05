@@ -624,8 +624,18 @@ namespace OWSData.Repositories.Implementations.Postgres
                         commandType: CommandType.Text);
 
                     result.RejectedItems = queryResult.ToList();
-                    result.Success = true;
-                    result.ErrorMessage = string.Empty;
+                    
+                    // Check if the item was completely rejected
+                    if (result.RejectedItems.Any() && result.RejectedItems.Sum(x => x.Quantity) >= itemQuantity)
+                    {
+                        result.Success = false;
+                        result.ErrorMessage = "The item was completely rejected. No space available in the inventory.";
+                    }
+                    else
+                    {
+                        result.Success = true;
+                        result.ErrorMessage = string.Empty;
+                    }
                 }
             }
             catch (Exception ex)
@@ -660,8 +670,18 @@ namespace OWSData.Repositories.Implementations.Postgres
                         commandType: CommandType.Text);
 
                     result.RejectedItems = queryResult.ToList();
-                    result.Success = true;
-                    result.ErrorMessage = string.Empty;
+                    
+                    // Check if the item was completely rejected
+                    if (result.RejectedItems.Any() && result.RejectedItems.Sum(x => x.Quantity) >= itemQuantity)
+                    {
+                        result.Success = false;
+                        result.ErrorMessage = "The item was completely rejected. No space available in the inventory.";
+                    }
+                    else
+                    {
+                        result.Success = true;
+                        result.ErrorMessage = string.Empty;
+                    }
                 }
             }
             catch (Exception ex)
@@ -870,6 +890,186 @@ namespace OWSData.Repositories.Implementations.Postgres
                 // Return the first (and only) item in the dictionary
                 return result;
             }
+        }
+
+        public async Task<TransferItemResult> TransferItemBetweenInventories(Guid customerGUID, int sourceCharacterInventoryID, int targetCharacterInventoryID, int itemQuantity, int sourceSlotIndex, int targetSlotIndex)
+        {
+            var result = new TransferItemResult();
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
+            
+            try
+            {
+                // Step 1: Remove item from source inventory
+                var removeParameters = new DynamicParameters();
+                removeParameters.Add("@CustomerGUID", customerGUID);
+                removeParameters.Add("@CharacterInventoryID", sourceCharacterInventoryID);
+                removeParameters.Add("@SlotIndex", sourceSlotIndex);
+                removeParameters.Add("@ItemQuantity", itemQuantity);
+
+                var removedItems = await Connection.QueryAsync<ItemResult>(
+                    "SELECT * FROM RemoveItemFromInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @SlotIndex, @ItemQuantity)",
+                    removeParameters,
+                    transaction,
+                    commandType: CommandType.Text);
+
+                if (!removedItems.Any())
+                {
+                    throw new Exception("Failed to remove item from source inventory.");
+                }
+
+                ItemResult removedItem = removedItems.FirstOrDefault();
+
+                // Step 2: Add item to target inventory
+                var addParameters = new DynamicParameters();
+                addParameters.Add("@CustomerGUID", customerGUID);
+                addParameters.Add("@CharacterInventoryID", targetCharacterInventoryID);
+                addParameters.Add("@ItemID", removedItem.ItemID);
+                addParameters.Add("@ItemQuantity", removedItem.Quantity);
+                addParameters.Add("@SlotIndex", targetSlotIndex);
+                addParameters.Add("@CustomData", removedItem.CustomData);
+
+                var rejectedItems = await Connection.QueryAsync<ItemResult>(
+                    "SELECT * FROM AddItemToInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity, @SlotIndex, @CustomData)",
+                    addParameters,
+                    transaction,
+                    commandType: CommandType.Text);
+
+                // Step 3: Handle rejected items
+                if (rejectedItems.Any())
+                {
+                    // Add the rejected items back to the source inventory
+                    foreach (var rejectedItem in rejectedItems)
+                    {
+                        var addBackParameters = new DynamicParameters();
+                        addBackParameters.Add("@CustomerGUID", customerGUID);
+                        addBackParameters.Add("@CharacterInventoryID", sourceCharacterInventoryID);
+                        addBackParameters.Add("@ItemID", rejectedItem.ItemID);
+                        addBackParameters.Add("@ItemQuantity", rejectedItem.Quantity);
+                        addBackParameters.Add("@SlotIndex", sourceSlotIndex);
+                        addBackParameters.Add("@CustomData", rejectedItem.CustomData);
+
+                        await Connection.ExecuteAsync(
+                            "SELECT * FROM AddItemToInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity, @SlotIndex, @CustomData)",
+                            addBackParameters,
+                            transaction,
+                            commandType: CommandType.Text);
+                    }
+                }
+
+                // Commit the transaction
+                transaction.Commit();
+
+                // Set result
+                result.Success = true;
+                result.ErrorMessage = string.Empty;
+                result.RemovedItems = removedItems.ToList();
+                result.RejectedItems = rejectedItems.ToList();
+            }
+            catch (Exception ex)
+            {
+                // Rollback the transaction on error
+                transaction.Rollback();
+
+                // Set result
+                result.Success = false;
+                result.ErrorMessage = ex.Message;
+                result.RemovedItems = new List<ItemResult>();
+                result.RejectedItems = new List<ItemResult>();
+            }
+
+            return result;
+        }
+
+        public async Task<TransferItemResult> TransferItemBetweenInventories(Guid customerGUID, int sourceCharacterInventoryID, int targetCharacterInventoryID,
+            int itemQuantity, int sourceSlotIndex)
+        {
+            var result = new TransferItemResult();
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
+            
+            try
+            {
+                // Step 1: Remove item from source inventory
+                var removeParameters = new DynamicParameters();
+                removeParameters.Add("@CustomerGUID", customerGUID);
+                removeParameters.Add("@CharacterInventoryID", sourceCharacterInventoryID);
+                removeParameters.Add("@SlotIndex", sourceSlotIndex);
+                removeParameters.Add("@ItemQuantity", itemQuantity);
+
+                var removedItems = await Connection.QueryAsync<ItemResult>(
+                    "SELECT * FROM RemoveItemFromInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @SlotIndex, @ItemQuantity)",
+                    removeParameters,
+                    transaction,
+                    commandType: CommandType.Text);
+
+                if (!removedItems.Any())
+                {
+                    throw new Exception("Failed to remove item from source inventory.");
+                }
+
+                ItemResult removedItem = removedItems.FirstOrDefault();
+
+                // Step 2: Add item to target inventory
+                var addParameters = new DynamicParameters();
+                addParameters.Add("@CustomerGUID", customerGUID);
+                addParameters.Add("@CharacterInventoryID", targetCharacterInventoryID);
+                addParameters.Add("@ItemID", removedItem.ItemID);
+                addParameters.Add("@ItemQuantity", removedItem.Quantity);
+                addParameters.Add("@CustomData", removedItem.CustomData);
+
+                var rejectedItems = await Connection.QueryAsync<ItemResult>(
+                    "SELECT * FROM AddItemToInventory(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity, @CustomData)",
+                    addParameters,
+                    transaction,
+                    commandType: CommandType.Text);
+
+                // Step 3: Handle rejected items
+                if (rejectedItems.Any())
+                {
+                    // Add the rejected items back to the source inventory
+                    foreach (var rejectedItem in rejectedItems)
+                    {
+                        var addBackParameters = new DynamicParameters();
+                        addBackParameters.Add("@CustomerGUID", customerGUID);
+                        addBackParameters.Add("@CharacterInventoryID", sourceCharacterInventoryID);
+                        addBackParameters.Add("@ItemID", rejectedItem.ItemID);
+                        addBackParameters.Add("@ItemQuantity", rejectedItem.Quantity);
+                        addBackParameters.Add("@SlotIndex", sourceSlotIndex);
+                        addBackParameters.Add("@CustomData", rejectedItem.CustomData);
+
+                        await Connection.ExecuteAsync(
+                            "SELECT * FROM AddItemToInventoryByIndex(@CustomerGUID, @CharacterInventoryID, @ItemID, @ItemQuantity, @SlotIndex, @CustomData)",
+                            addBackParameters,
+                            transaction,
+                            commandType: CommandType.Text);
+                    }
+                }
+
+                // Commit the transaction
+                transaction.Commit();
+
+                // Set result
+                result.Success = true;
+                result.ErrorMessage = string.Empty;
+                result.RemovedItems = removedItems.ToList();
+                result.RejectedItems = rejectedItems.ToList();
+            }
+            catch (Exception ex)
+            {
+                // Rollback the transaction on error
+                transaction.Rollback();
+
+                // Set result
+                result.Success = false;
+                result.ErrorMessage = ex.Message;
+                result.RemovedItems = new List<ItemResult>();
+                result.RejectedItems = new List<ItemResult>();
+            }
+
+            return result;
         }
     }
 }

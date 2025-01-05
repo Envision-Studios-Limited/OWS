@@ -208,6 +208,35 @@
             <b>ItemID</b> - Item ID.<br/>
             </param>
         </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.TransferItemBetweenInventoriesByIndex(OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesByIndexRequest)">
+            <summary>
+            Transfer Item Between Inventories To Specific Index
+            </summary>
+            <remarks>
+            Transfer Item Between Inventories To Specific Index
+            </remarks>
+            <param name="request">
+            <b>SourceCharacterInventoryID</b> - The source character inventory ID.<br/>
+            <b>TargetCharacterInventoryID</b> - The target character inventory ID.<br/>
+            <b>ItemQuantity</b> - The number of item to transfer.<br/>
+            <b>SourceSlotIndex</b> - Source item index.<br/>
+            <b>TargetSlotIndex</b> - Source item index.<br/>
+            </param>
+        </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.TransferItemBetweenInventories(OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesRequest)">
+            <summary>
+            Transfer Item Between Inventories
+            </summary>
+            <remarks>
+            Transfer Item Between Inventories
+            </remarks>
+            <param name="request">
+            <b>SourceCharacterInventoryID</b> - The source character inventory ID.<br/>
+            <b>TargetCharacterInventoryID</b> - The target character inventory ID.<br/>
+            <b>ItemQuantity</b> - The number of item to transfer.<br/>
+            <b>SourceSlotIndex</b> - Source item index.<br/>
+            </param>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -622,6 +651,94 @@
             </summary>
             <remarks>
             Second item index
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesByIndexRequest">
+            <summary>
+            Transfer Item Between Inventories
+            </summary>
+            <remarks>
+            Transfer Item Between Inventories
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesByIndexRequest.SourceCharacterInventoryID">
+            <summary>
+            Source Character Inventory ID
+            </summary>
+            <remarks>
+            This is the source character inventory ID
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesByIndexRequest.TargetCharacterInventoryID">
+            <summary>
+            Target Character Inventory ID
+            </summary>
+            <remarks>
+            This is the target character inventory ID
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesByIndexRequest.ItemQuantity">
+            <summary>
+            Item Quantity
+            </summary>
+            <remarks>
+            This is the number of item to transfer
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesByIndexRequest.SourceSlotIndex">
+            <summary>
+            Source Slot Index
+            </summary>
+            <remarks>
+            Source item index
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesByIndexRequest.TargetSlotIndex">
+            <summary>
+            Target Slot Index
+            </summary>
+            <remarks>
+            Target item index
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesRequest">
+            <summary>
+            Transfer Item Between Inventories
+            </summary>
+            <remarks>
+            Transfer Item Between Inventories
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesRequest.SourceCharacterInventoryID">
+            <summary>
+            Source Character Inventory ID
+            </summary>
+            <remarks>
+            This is the source character inventory ID
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesRequest.TargetCharacterInventoryID">
+            <summary>
+            Target Character Inventory ID
+            </summary>
+            <remarks>
+            This is the target character inventory ID
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesRequest.ItemQuantity">
+            <summary>
+            Item Quantity
+            </summary>
+            <remarks>
+            This is the number of item to transfer
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.TransferItemBetweenInventoriesRequest.SourceSlotIndex">
+            <summary>
+            Source Slot Index
+            </summary>
+            <remarks>
+            Source item index
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Statuses.GetCharacterStatusesRequest">

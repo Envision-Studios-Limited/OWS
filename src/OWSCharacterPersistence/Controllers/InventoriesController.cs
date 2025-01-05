@@ -186,5 +186,50 @@ namespace OWSCharacterPersistence.Controllers
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();
         }
+
+        /// <summary>
+        /// Transfer Item Between Inventories To Specific Index
+        /// </summary>
+        /// <remarks>
+        /// Transfer Item Between Inventories To Specific Index
+        /// </remarks>
+        /// <param name="request">
+        /// <b>SourceCharacterInventoryID</b> - The source character inventory ID.<br/>
+        /// <b>TargetCharacterInventoryID</b> - The target character inventory ID.<br/>
+        /// <b>ItemQuantity</b> - The number of item to transfer.<br/>
+        /// <b>SourceSlotIndex</b> - Source item index.<br/>
+        /// <b>TargetSlotIndex</b> - Source item index.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("TransferItemBetweenInventoriesByIndex")]
+        [Produces(typeof(TransferItemResult))]
+        public async Task<TransferItemResult> TransferItemBetweenInventoriesByIndex(
+            [FromBody] TransferItemBetweenInventoriesByIndexRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+        
+        /// <summary>
+        /// Transfer Item Between Inventories
+        /// </summary>
+        /// <remarks>
+        /// Transfer Item Between Inventories
+        /// </remarks>
+        /// <param name="request">
+        /// <b>SourceCharacterInventoryID</b> - The source character inventory ID.<br/>
+        /// <b>TargetCharacterInventoryID</b> - The target character inventory ID.<br/>
+        /// <b>ItemQuantity</b> - The number of item to transfer.<br/>
+        /// <b>SourceSlotIndex</b> - Source item index.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("TransferItemBetweenInventories")]
+        [Produces(typeof(TransferItemResult))]
+        public async Task<TransferItemResult> TransferItemBetweenInventories(
+            [FromBody] TransferItemBetweenInventoriesRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
     }
 }

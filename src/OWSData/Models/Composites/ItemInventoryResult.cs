@@ -22,3 +22,11 @@ public class RemoveItemInventoryResult
     public string ErrorMessage { get; set; }
     public List<ItemResult> RemovedItems { get; set; } = new();
 }
+
+public class TransferItemResult
+{
+    public bool Success { get; set; }
+    public string ErrorMessage { get; set; }
+    public List<ItemResult> RemovedItems { get; set; } = new List<ItemResult>();
+    public List<ItemResult> RejectedItems { get; set; } = new List<ItemResult>();
+}
