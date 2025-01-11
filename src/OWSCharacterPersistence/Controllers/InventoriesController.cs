@@ -231,5 +231,23 @@ namespace OWSCharacterPersistence.Controllers
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();
         }
+        
+        /// <summary>
+        /// Get All Items in Inventory
+        /// </summary>
+        /// <remarks>
+        /// Get All Items in Inventory
+        /// </remarks>
+        /// <param name="request">
+        /// <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("GetAllItemsInInventory")]
+        [Produces(typeof(GetAllItemsInInventory))]
+        public async Task<GetAllItemsInInventory> GetAllItemsInInventory([FromBody] GetAllItemsInInventoryRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
     }
 }

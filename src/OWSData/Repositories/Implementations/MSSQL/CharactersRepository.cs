@@ -1079,5 +1079,48 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return result;
         }
+        
+        public async Task<GetAllItemsInInventory> GetAllItemsInInventory(Guid customerGUID, int characterInventoryID)
+        {
+            var result = new GetAllItemsInInventory();
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharacterInventoryID", characterInventoryID);
+                    
+                    // Check if the CharacterInventoryID exists
+                    var inventoryExists = await Connection.QueryFirstOrDefaultAsync<int>(
+                        "SELECT 1 FROM CharInventory WHERE CustomerGUID = @CustomerGUID AND CharInventoryID = @CharacterInventoryID",
+                        p,
+                        commandType: CommandType.Text);
+                    
+                    if (inventoryExists == 0)
+                    {
+                        throw new Exception($"CharacterInventoryID {characterInventoryID} not found for CustomerGUID {customerGUID}.");
+                    }
+
+                    // Call the PostgreSQL function
+                    var queryResult = await Connection.QuerySingleOrDefaultAsync<GetAllItemsInInventory>(
+                        "SELECT * FROM GetAllItemsInInventory(@CustomerGUID, @CharacterInventoryID)",
+                        p,
+                        commandType: CommandType.Text);
+
+                    result = queryResult;
+                    result.Success = true;
+                    result.ErrorMessage = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.ErrorMessage = ex.Message;
+            }
+
+            return result;
+        }
     }
 }

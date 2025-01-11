@@ -37,5 +37,6 @@ namespace OWSData.Repositories.Interfaces
         Task<GetItemDetails> GetItemDetails(Guid customerGUID, int itemId);
         Task<TransferItemResult> TransferItemBetweenInventories(Guid customerGUID, int sourceCharacterInventoryID, int targetCharacterInventoryID, int itemQuantity, int sourceSlotIndex, int targetSlotIndex);
         Task<TransferItemResult> TransferItemBetweenInventories(Guid customerGUID, int sourceCharacterInventoryID, int targetCharacterInventoryID, int itemQuantity, int sourceSlotIndex);
+        Task<GetAllItemsInInventory> GetAllItemsInInventory(Guid customerGUID, int characterInventoryID);
     }
 }

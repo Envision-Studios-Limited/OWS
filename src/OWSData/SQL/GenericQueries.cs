@@ -503,6 +503,12 @@ namespace OWSData.SQL
         #endregion
         
         #region Item Queries
+
+        public static readonly string GetAllItemsInInventory = @"
+		SELECT *
+		FROM CharInventoryItems CII
+		WHERE CustomerGUID = @CustomerGUID AND CII.CharInventoryID = @CharacterInventoryID";
+        
         public static readonly string GetItemDetails = @"
 		SELECT 
 		    i.*,

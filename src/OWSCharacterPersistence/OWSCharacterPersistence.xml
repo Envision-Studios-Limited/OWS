@@ -237,6 +237,17 @@
             <b>SourceSlotIndex</b> - Source item index.<br/>
             </param>
         </member>
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.GetAllItemsInInventory(OWSCharacterPersistence.Requests.Inventories.GetAllItemsInInventoryRequest)">
+            <summary>
+            Get All Items in Inventory
+            </summary>
+            <remarks>
+            Get All Items in Inventory
+            </remarks>
+            <param name="request">
+            <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
+            </param>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -515,6 +526,22 @@
             </summary>
             <remarks>
             This is the custom data
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.GetAllItemsInInventoryRequest">
+            <summary>
+            Get Character Inventory Items Request
+            </summary>
+            <remarks>
+            Get Character Inventory Items Request
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.GetAllItemsInInventoryRequest.CharacterInventoryID">
+            <summary>
+            Character Inventory ID
+            </summary>
+            <remarks>
+            This is the ID of character's inventory to be inserted an item
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.GetItemDataInInventoryRequest">
