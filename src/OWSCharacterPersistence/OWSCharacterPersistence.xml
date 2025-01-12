@@ -248,6 +248,7 @@
             <b>CharacterInventoryID</b> - This is the ID of character's inventory to be inserted an item.<br/>
             </param>
         </member>
+        <!-- Badly formed XML comment ignored for member "M:OWSCharacterPersistence.Controllers.InventoriesController.SetInventoryData(OWSCharacterPersistence.Requests.Inventories.SetInventoryDataRequest)" -->
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -646,6 +647,22 @@
             </summary>
             <remarks>
             This is the number of item to add
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.SetInventoryDataRequest">
+            <summary>
+            Set Inventory Data
+            </summary>
+            <remarks>
+            Set Inventory Data
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.SetInventoryDataRequest.InventoryData">
+            <summary>
+            Inventory Data
+            </summary>
+            <remarks>
+            Inventory Data
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.SwapItemsInInventoryRequest">

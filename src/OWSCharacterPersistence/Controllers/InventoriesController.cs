@@ -249,5 +249,23 @@ namespace OWSCharacterPersistence.Controllers
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();
         }
+        
+        /// <summary>
+        /// Set Inventory Data
+        /// </summary>
+        /// <remarks>
+        /// Set Inventory Data
+        /// </remarks>
+        /// <param name="request">
+        /// <b>SetInventoryData</b> - Character's Inventory ID & list of items.<br/>
+        /// </param>
+        [HttpPost]
+        [Route("SetInventoryData")]
+        [Produces(typeof(SuccessAndErrorMessage))]
+        public async Task<SuccessAndErrorMessage> SetInventoryData([FromBody] SetInventoryDataRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
     }
 }

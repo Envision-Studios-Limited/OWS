@@ -1122,5 +1122,62 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
             return result;
         }
+
+public async Task<SuccessAndErrorMessage> SetInventoryData(Guid customerGUID, SetInventoryData inventoryData)
+        {
+            var result = new SuccessAndErrorMessage();
+            IDbConnection conn = Connection;
+            conn.Open();
+            using IDbTransaction transaction = conn.BeginTransaction();
+            
+            try
+            {
+                // Step 1: Remove item from source inventory
+                var removeParameters = new DynamicParameters();
+                removeParameters.Add("@CustomerGUID", customerGUID);
+                removeParameters.Add("@CharacterInventoryID", inventoryData.CharacterInventoryID);
+
+                await Connection.ExecuteAsync(
+                    "DELETE FROM CharInventoryItems WHERE CustomerGUID = @CustomerGUID AND CharInventoryID = @CharacterInventoryID",
+                    removeParameters,
+                    transaction,
+                    commandType: CommandType.Text);
+
+                foreach (var item in inventoryData.Items)
+                {
+                    var insertParams = new DynamicParameters();
+                    insertParams.Add("CustomerGUID", customerGUID);
+                    insertParams.Add("CharacterInventoryID", inventoryData.CharacterInventoryID);
+                    insertParams.Add("ItemID", item.ItemID);
+                    insertParams.Add("InSlotNumber", item.InSlotNumber);
+                    insertParams.Add("Quantity", item.Quantity);
+                    insertParams.Add("CustomData", item.CustomData);
+
+                    await Connection.ExecuteAsync(
+                        "INSERT INTO CharInventoryItems (CustomerGUID, CharInventoryID, ItemID, InSlotNumber, Quantity, CustomData) " +
+                        "VALUES (@CustomerGUID, @CharacterInventoryID, @ItemID, @InSlotNumber, @Quantity, @CustomData)",
+                        insertParams,
+                        transaction);
+                }
+
+                // Commit the transaction
+                transaction.Commit();
+
+                // Set result
+                result.Success = true;
+                result.ErrorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                // Rollback the transaction on error
+                transaction.Rollback();
+
+                // Set result
+                result.Success = false;
+                result.ErrorMessage = ex.Message;
+            }
+
+            return result;
+        }
     }
 }
