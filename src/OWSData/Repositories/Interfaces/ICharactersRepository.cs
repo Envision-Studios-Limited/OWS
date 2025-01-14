@@ -38,6 +38,6 @@ namespace OWSData.Repositories.Interfaces
         Task<TransferItemResult> TransferItemBetweenInventories(Guid customerGUID, int sourceCharacterInventoryID, int targetCharacterInventoryID, int itemQuantity, int sourceSlotIndex, int targetSlotIndex);
         Task<TransferItemResult> TransferItemBetweenInventories(Guid customerGUID, int sourceCharacterInventoryID, int targetCharacterInventoryID, int itemQuantity, int sourceSlotIndex);
         Task<GetAllItemsInInventory> GetAllItemsInInventory(Guid customerGUID, int characterInventoryID);
-        Task<SuccessAndErrorMessage> SetInventoryData(Guid customerGUID, SetInventoryData inventoryData);
+        Task<SuccessAndErrorMessage> SetInventoryData(Guid customerGUID, int characterInventoryID, List<NewItemRequest> items);
     }
 }

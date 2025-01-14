@@ -657,12 +657,20 @@
             Set Inventory Data
             </remarks>
         </member>
-        <member name="P:OWSCharacterPersistence.Requests.Inventories.SetInventoryDataRequest.InventoryData">
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.SetInventoryDataRequest.CharacterInventoryID">
             <summary>
-            Inventory Data
+            Character Inventory ID
             </summary>
             <remarks>
-            Inventory Data
+            Character Inventory ID
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.SetInventoryDataRequest.Items">
+            <summary>
+            List of item
+            </summary>
+            <remarks>
+            List of item
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.SwapItemsInInventoryRequest">

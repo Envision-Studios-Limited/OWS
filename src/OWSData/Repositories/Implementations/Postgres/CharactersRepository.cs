@@ -1115,7 +1115,7 @@ namespace OWSData.Repositories.Implementations.Postgres
             return result;
         }
 
-        public async Task<SuccessAndErrorMessage> SetInventoryData(Guid customerGUID, SetInventoryData inventoryData)
+        public async Task<SuccessAndErrorMessage> SetInventoryData(Guid customerGUID, int characterInventoryID, List<NewItemRequest> items)
         {
             var result = new SuccessAndErrorMessage();
             IDbConnection conn = Connection;
@@ -1124,31 +1124,84 @@ namespace OWSData.Repositories.Implementations.Postgres
             
             try
             {
-                // Step 1: Remove item from source inventory
-                var removeParameters = new DynamicParameters();
-                removeParameters.Add("@CustomerGUID", customerGUID);
-                removeParameters.Add("@CharacterInventoryID", inventoryData.CharacterInventoryID);
-
-                await Connection.ExecuteAsync(
-                    "DELETE FROM CharInventoryItems WHERE CustomerGUID = @CustomerGUID AND CharInventoryID = @CharacterInventoryID",
-                    removeParameters,
-                    transaction,
+                var p = new DynamicParameters();
+                p.Add("@CustomerGUID", customerGUID);
+                p.Add("@CharacterInventoryID", characterInventoryID);
+                
+                var inventoryExists = await Connection.QueryFirstOrDefaultAsync<int>(
+                    "SELECT 1 FROM CharInventory WHERE CustomerGUID = @CustomerGUID AND CharInventoryID = @CharacterInventoryID",
+                    p,
                     commandType: CommandType.Text);
-
-                foreach (var item in inventoryData.Items)
+                    
+                if (inventoryExists == 0)
                 {
-                    var insertParams = new DynamicParameters();
-                    insertParams.Add("CustomerGUID", customerGUID);
-                    insertParams.Add("CharacterInventoryID", inventoryData.CharacterInventoryID);
-                    insertParams.Add("ItemID", item.ItemID);
-                    insertParams.Add("InSlotNumber", item.InSlotNumber);
-                    insertParams.Add("Quantity", item.Quantity);
-                    insertParams.Add("CustomData", item.CustomData);
+                    throw new Exception($"CharacterInventoryID {characterInventoryID} not found for CustomerGUID {customerGUID}.");
+                }
+                
+                // Step 1: Fetch existing inventory items for the character
+                var existingItems = await conn.QueryAsync<CharInventoryItems>(
+                    "SELECT * FROM CharInventoryItems WHERE CustomerGUID = @CustomerGUID AND CharInventoryID = @CharacterInventoryID",
+                    p,
+                    transaction);
+                
+                // Convert existing items to a dictionary for quick lookup
+                var existingItemsDict = existingItems.ToDictionary(item => item.CharInventoryItemGuid);
 
-                    await Connection.ExecuteAsync(
-                        "INSERT INTO CharInventoryItems (CustomerGUID, CharInventoryID, ItemID, InSlotNumber, Quantity, CustomData) " +
-                        "VALUES (@CustomerGUID, @CharacterInventoryID, @ItemID, @InSlotNumber, @Quantity, @CustomData)",
-                        insertParams,
+                // Step 2: Process new inventory data
+                foreach (var item in items)
+                {
+                    if (existingItemsDict.ContainsKey(item.CharacterInventoryItemGUID))
+                    {
+                        // Item exists, update it
+                        var updateParams = new DynamicParameters();
+                        updateParams.Add("@CustomerGUID", customerGUID);
+                        updateParams.Add("@CharacterInventoryID", characterInventoryID);
+                        updateParams.Add("@CharacterInventoryItemGUID", item.CharacterInventoryItemGUID);
+                        updateParams.Add("@ItemID", item.ItemID);
+                        updateParams.Add("@InSlotNumber", item.InSlotNumber);
+                        updateParams.Add("@Quantity", item.Quantity);
+                        updateParams.Add("@CustomData", item.CustomData);
+
+                        await conn.ExecuteAsync(
+                            "UPDATE CharInventoryItems SET InSlotNumber = @InSlotNumber, Quantity = @Quantity, CustomData = @CustomData " +
+                            "WHERE CustomerGUID = @CustomerGUID AND CharInventoryID = @CharacterInventoryID AND CharInventoryItemGUID = @CharacterInventoryItemGUID",
+                            updateParams,
+                            transaction);
+
+                        // Remove the item from the existing items dictionary to track which items are no longer in the inventory
+                        existingItemsDict.Remove(item.CharacterInventoryItemGUID);
+                    }
+                    else
+                    {
+                        // Item is new, insert it
+                        var insertParams = new DynamicParameters();
+                        insertParams.Add("@CustomerGUID", customerGUID);
+                        insertParams.Add("@CharacterInventoryItemGUID", item.CharacterInventoryItemGUID);
+                        insertParams.Add("@CharacterInventoryID", characterInventoryID);
+                        insertParams.Add("@ItemID", item.ItemID);
+                        insertParams.Add("@InSlotNumber", item.InSlotNumber);
+                        insertParams.Add("@Quantity", item.Quantity);
+                        insertParams.Add("@CustomData", item.CustomData);
+
+                        await conn.ExecuteAsync(
+                            "INSERT INTO CharInventoryItems (CustomerGUID, CharInventoryItemGUID, CharInventoryID, ItemID, InSlotNumber, Quantity, CustomData) " +
+                            "VALUES (@CustomerGUID, @CharacterInventoryItemGUID, @CharacterInventoryID, @ItemID, @InSlotNumber, @Quantity, @CustomData)",
+                            insertParams,
+                            transaction);
+                    }
+                }
+                
+                // Step 3: Delete items that are no longer in the inventory
+                foreach (var characterInventoryItemGUID in existingItemsDict.Keys)
+                {
+                    var deleteParams = new DynamicParameters();
+                    deleteParams.Add("@CustomerGUID", customerGUID);
+                    deleteParams.Add("@CharacterInventoryID", characterInventoryID);
+                    deleteParams.Add("@CharacterInventoryItemGUID", characterInventoryItemGUID);
+
+                    await conn.ExecuteAsync(
+                        "DELETE FROM CharInventoryItems WHERE CustomerGUID = @CustomerGUID AND CharInventoryID = @CharacterInventoryID AND CharInventoryItemGUID = @CharacterInventoryItemGUID",
+                        deleteParams,
                         transaction);
                 }
 

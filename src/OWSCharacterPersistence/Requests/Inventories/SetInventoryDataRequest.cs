@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using OWSData.Models.Composites;
 using OWSData.Models.StoredProcs;
@@ -16,12 +17,20 @@ namespace OWSCharacterPersistence.Requests.Inventories;
 public class SetInventoryDataRequest
 {
     /// <summary>
-    /// Inventory Data
+    /// Character Inventory ID
     /// </summary>
     /// <remarks>
-    /// Inventory Data
+    /// Character Inventory ID
     /// </remarks>
-    public SetInventoryData InventoryData { get; set; }
+    public int CharacterInventoryID { get; set; }
+    
+    /// <summary>
+    /// List of item
+    /// </summary>
+    /// <remarks>
+    /// List of item
+    /// </remarks>
+    public List<NewItemRequest> Items { get; set; }
     
     private SuccessAndErrorMessage output;
     private Guid customerGUID;
@@ -36,7 +45,7 @@ public class SetInventoryDataRequest
     public async Task<SuccessAndErrorMessage> Handle()
     {
         output = new SuccessAndErrorMessage();
-        output = await charactersRepository.SetInventoryData(customerGUID, InventoryData);
+        output = await charactersRepository.SetInventoryData(customerGUID, CharacterInventoryID, Items);
         
         return output;
     }
