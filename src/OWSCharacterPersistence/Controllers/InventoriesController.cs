@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using OWSCharacterPersistence.Requests.Abilities;
 using OWSCharacterPersistence.Requests.Inventories;
 using OWSData.Models.Composites;
+using OWSData.Models.Tables;
 using OWSData.Repositories.Interfaces;
 using OWSShared.Interfaces;
 
@@ -263,6 +264,21 @@ namespace OWSCharacterPersistence.Controllers
         [Route("SetInventoryData")]
         [Produces(typeof(SuccessAndErrorMessage))]
         public async Task<SuccessAndErrorMessage> SetInventoryData([FromBody] SetInventoryDataRequest request)
+        {
+            request.SetData(_charactersRepository, _customerGuid);
+            return await request.Handle();
+        }
+
+        /// <summary>
+        /// Get Character's Main Inventory
+        /// </summary>
+        /// <param name="request">
+        /// <b>CharacterID</b> - Character's ID <br/>
+        /// </param>
+        [HttpPost]
+        [Route("GetCharMainInventory")]
+        [Produces(typeof(CharInventory))]
+        public async Task<CharInventory> GetCharMainInventory([FromBody] GetCharMainInventoryRequest request)
         {
             request.SetData(_charactersRepository, _customerGuid);
             return await request.Handle();

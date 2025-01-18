@@ -249,6 +249,14 @@
             </param>
         </member>
         <!-- Badly formed XML comment ignored for member "M:OWSCharacterPersistence.Controllers.InventoriesController.SetInventoryData(OWSCharacterPersistence.Requests.Inventories.SetInventoryDataRequest)" -->
+        <member name="M:OWSCharacterPersistence.Controllers.InventoriesController.GetCharMainInventory(OWSCharacterPersistence.Requests.Inventories.GetCharMainInventoryRequest)">
+            <summary>
+            Get Character's Main Inventory
+            </summary>
+            <param name="request">
+            <b>CharacterID</b> - Character's ID <br/>
+            </param>
+        </member>
         <member name="T:OWSCharacterPersistence.Controllers.SystemController">
             <summary>
             Public System API calls.
@@ -543,6 +551,22 @@
             </summary>
             <remarks>
             This is the ID of character's inventory to be inserted an item
+            </remarks>
+        </member>
+        <member name="T:OWSCharacterPersistence.Requests.Inventories.GetCharMainInventoryRequest">
+            <summary>
+            Get Character Main Inventory Request
+            </summary>
+            <remarks>
+            Get Character Main Inventory Request
+            </remarks>
+        </member>
+        <member name="P:OWSCharacterPersistence.Requests.Inventories.GetCharMainInventoryRequest.CharacterID">
+            <summary>
+            Character ID
+            </summary>
+            <remarks>
+            Character ID
             </remarks>
         </member>
         <member name="T:OWSCharacterPersistence.Requests.Inventories.GetItemDataInInventoryRequest">

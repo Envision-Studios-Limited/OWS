@@ -1182,5 +1182,30 @@ namespace OWSData.Repositories.Implementations.MySQL
 
             return result;
         }
+        
+        public async Task<CharInventory> GetCharMainInventory(Guid customerGUID, int characterID)
+        {
+            CharInventory result;
+
+            try
+            {
+                using (Connection)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@CustomerGUID", customerGUID);
+                    p.Add("@CharacterID", characterID);
+                    
+                    result = await Connection.QueryFirstOrDefaultAsync<CharInventory>(GenericQueries.GetCharacterMainInventory,
+                        p,
+                        commandType: CommandType.Text);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"{ex.Message}");
+            }
+
+            return result;
+        }
     }
 }

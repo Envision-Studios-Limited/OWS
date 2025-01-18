@@ -10,5 +10,7 @@ namespace OWSData.Models.Tables
         public int CharInventoryId { get; set; }
         public string InventoryName { get; set; }
         public int InventorySize { get; set; }
+        public int InventoryWidth { get; set; }
+        public int InventoryHeight { get; set; }
     }
 }

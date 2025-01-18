@@ -502,7 +502,11 @@ namespace OWSData.SQL
 
         #endregion
         
-        #region Item Queries
+        #region Inventory Queries
+        
+        public static readonly string GetCharacterMainInventory = @" 
+			SELECT * FROM CharInventory CI 
+				WHERE CI.CustomerGUID = @CustomerGUID AND CI.CharacterID = @CharacterID AND CI.InventoryName = 'Bag'";
 
         public static readonly string GetAllItemsInInventory = @"
 		SELECT *

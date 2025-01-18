@@ -1333,12 +1333,12 @@ FROM Class CL
 WHERE CL.ClassID = _ClassID
   AND CL.CustomerGUID = _CustomerGUID;
 
+-- Get CharacterID
+_CharacterID := CURRVAL(PG_GET_SERIAL_SEQUENCE('characterdata', 'characterid'));
+
 -- Add default character's inventory
 INSERT INTO CharInventory (CustomerGUID, CharacterID, InventoryName, InventorySize)
 VALUES (_CustomerGUID, _CharacterID, 'Bag', 16);
-
--- Get CharacterID
-_CharacterID := CURRVAL(PG_GET_SERIAL_SEQUENCE('characterdata', 'characterid'));
 
     -- Return Inserted Character
 RETURN QUERY
